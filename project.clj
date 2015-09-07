@@ -5,6 +5,9 @@
             :url "http://www.wtfpl.net/txt/copying"}
   :dependencies [
     [org.clojure/clojure "1.6.0"]
+    [org.clojure/java.jdbc "0.4.1"]
+    [org.postgresql/postgresql "9.4-1201-jdbc41"]
+    [korma "0.4.2"]
     [http-kit "2.1.19"]
     [compojure "1.1.5"]
     [ring/ring-devel "1.1.8"]
