@@ -1,5 +1,7 @@
 (ns quicksilver.core
-  (:require [compojure.core :refer :all]
+  (:require [ring.middleware.reload :as reload]
+            [compojure.core :refer :all]
+            [compojure.handler :refer [site]]
             [org.httpkit.server :refer [run-server, with-channel, on-close, on-receive, send!]])) ; httpkit is a server
 
 (def channels-map (atom {}))
@@ -18,10 +20,16 @@
                           (upd-chan request channel)
                           (send! channel (str (get-chan request)))))))
 
-(defroutes quicksilver
+(defroutes all-routes
   (GET "/" [] "Hello World")
   (GET "/ws/:chan" [chan] chan-handler)
   (GET "/:chan" [chan] (str (@channels-map chan))))
 
-(defn -main []
-  (run-server quicksilver {:port 8080}))
+(defn in-dev? [args] true)
+
+(defn -main [& args]
+  (let [handler (if (in-dev? args)
+                  (reload/wrap-reload (site #'all-routes)) ;; only reload when dev
+                  (site all-routes))]
+    (println "running server at http://localhost:8080")
+    (run-server handler {:port 8080})))
