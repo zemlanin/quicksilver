@@ -1,11 +1,11 @@
 (ns quicksilver.core
   (:require [ring.middleware.reload :as reload]
-            [compojure.core :refer :all]
             [korma.core :refer :all]
             [korma.db :refer :all]
+            [compojure.core :refer :all]
             [compojure.handler :refer [site]]
             [clojure.set :refer [rename-keys]]
-            [org.httpkit.server :refer [run-server, with-channel, on-close, on-receive, send!]]))
+            [org.httpkit.server :refer [run-server]]))
 
 (defdb db (postgres {:db "quicksilver"
                      :user "zem"
@@ -16,35 +16,16 @@
   (transform (fn [v] (rename-keys v {:date_created :date-created})))
   (entity-fields :date_created :author :type :text))
 
-(def channels-map (atom {}))
-
-(defn get-chan [req]
-  (@channels-map (get-in req [:params :chan])))
-
-(defn upd-chan [req channel]
-  (swap! channels-map update-in [(get-in req [:params :chan])]
-    (if (get-chan req) inc (constantly 1))))
-
-(defn chan-handler [request]
-  (with-channel request channel
-    (on-close channel (fn [status] (println "channel closed: " status)))
-    (on-receive channel (fn [data]
-                          (upd-chan request channel)
-                          (send! channel (str (get-chan request)))))))
-
-(defn text-handler [request]
-  (let [latest-text (select messages
-                     (where
-                        {:type (get-in request [:params :type] "uno")})
-                     (limit 1)
-                     (order :date_created :DESC))]
-       (:text (first latest-text))))
+(defn get-text-handler [{{text-type :text-type} :params}]
+  (:text (first (select messages
+                  (where {:type text-type})
+                  (limit 1)
+                  (order :date_created :DESC)))))
 
 (defroutes all-routes
   (GET "/" [] "Hello World")
-  (GET "/text" [] text-handler)
-  (GET "/ws/:chan" [chan] chan-handler)
-  (GET "/:chan" [chan] (str (@channels-map chan))))
+  (context "/text" []
+    (GET "/:text-type" [text-type] get-text-handler)))
 
 (defn in-dev? [args] true)
 

@@ -9,9 +9,8 @@
     [org.postgresql/postgresql "9.4-1201-jdbc41"]
     [korma "0.4.2"]
     [http-kit "2.1.19"]
-    [compojure "1.1.5"]
-    [ring/ring-devel "1.1.8"]
-    [ring/ring-core "1.1.8"]
+    [compojure "1.4.0"]
+    [ring "1.4.0"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"
