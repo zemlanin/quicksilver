@@ -4,12 +4,14 @@
             [korma.db :refer :all]
             [compojure.core :refer :all]
             [compojure.handler :refer [site]]
+            [nomad :refer [defconfig]]
+            [clojure.java.io :as io]
             [clojure.set :refer [rename-keys]]
             [org.httpkit.server :refer [run-server]]))
 
-(defdb db (postgres {:db "quicksilver"
-                     :user "zem"
-                     :password ""}))
+(defconfig config (io/resource "config/config.edn"))
+
+(defdb db (postgres (:postgres config)))
 
 (defentity messages
   (prepare (fn [v] (rename-keys v {:date-created :date_created})))

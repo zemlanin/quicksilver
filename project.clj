@@ -11,6 +11,7 @@
     [http-kit "2.1.19"]
     [compojure "1.4.0"]
     [ring "1.4.0"]
+    [jarohen/nomad "0.7.2"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"
