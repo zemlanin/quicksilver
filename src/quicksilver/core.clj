@@ -11,7 +11,7 @@
 
 (defconfig config (io/resource "config/config.edn"))
 
-(defdb db (postgres (:postgres config)))
+(defdb db (postgres (:postgres (config))))
 
 (defentity messages
   (prepare (fn [v] (rename-keys v {:date-created :date_created})))
