@@ -11,7 +11,6 @@
     [http-kit "2.1.19"]
     [compojure "1.4.0"]
     [ring "1.4.0"]
-    [ring/ring-json "0.4.0"]
     [jarohen/nomad "0.7.2"]
     [org.clojure/core.match "0.3.0-alpha4"]
   ]
