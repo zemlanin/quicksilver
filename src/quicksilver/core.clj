@@ -6,7 +6,9 @@
             [compojure.handler :refer [site]]
             [nomad :refer [defconfig]]
             [clojure.java.io :as io]
+            [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
+            [clojure.core.match :refer [match]]
             [org.httpkit.server :refer [run-server]]))
 
 (defconfig config (io/resource "config/config.edn"))
@@ -18,16 +20,45 @@
   (transform (fn [v] (rename-keys v {:date_created :date-created})))
   (entity-fields :date_created :author :type :text))
 
-(defn get-text-handler [{{text-type :text-type} :params}]
-  (:text (first (select messages
-                  (where {:type text-type})
-                  (limit 1)
-                  (order :date_created :DESC)))))
+(defn get-msg [msg-type]
+  (-> (select messages
+        (where {:type msg-type})
+        (limit 1)
+        (order :date_created :DESC))
+      first
+      :text))
+
+(defn get-text-handler [{{msg-type :msg-type} :params}]
+  (get-msg msg-type))
+
+(def authors #{
+  nil ; so lazy
+  "a.verinov"})
+
+(defn slack-text-handler [{{raw-text :text, token :token, author :user_name} :params}]
+  (let [[msg-type text] (-> raw-text
+                            (string/split #" ")
+                            (match
+                              [] ["" ""]
+                              [msg-type] [msg-type ""]
+                              [msg-type & split-text] [msg-type (apply str split-text)]))]
+
+      (match [text token]
+        ["" _] (str msg-type ": " (get-msg msg-type))
+        [_ nil] (str msg-type ": " (get-msg msg-type))
+        ; TODO: check for tokens and user_name
+        :else (if (and (= token "lazy") (contains? authors author))
+                (-> (insert messages
+                      (values {:author (or author ""), :type msg-type, :text text}))
+                    (:text)
+                    (->> (str msg-type ": ")))
+                "no access"))))
 
 (defroutes all-routes
   (GET "/" [] "Hello World")
   (context "/text" []
-    (GET "/:text-type" [text-type] get-text-handler)))
+    (GET  "/:msg-type" req get-text-handler)
+    (POST "/slack" req slack-text-handler)))
 
 (defn in-dev? [args] true)
 
