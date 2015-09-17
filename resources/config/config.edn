@@ -6,4 +6,8 @@
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
-                        :port "5433"}}}}
+                        :port "5433"}}
+    "prod" {:postgres {:user "postgres"
+                       :password #nomad/env-var "DB_PASSWORD"
+                       :post "5432"}
+            :debug false}}}
