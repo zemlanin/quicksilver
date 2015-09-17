@@ -1,4 +1,5 @@
 (ns quicksilver.core
+  (:gen-class)
   (:require [ring.middleware.reload :as reload]
             [korma.core :refer :all]
             [korma.db :refer :all]

@@ -1,0 +1,17 @@
+---
+- hosts: webservers
+  gather_facts: no
+
+  tasks:
+    - name: upload an artifact
+      copy: src=./infrastructure/qs.jar
+        dest=/var/projects/quicksilver-latest.jar
+        force=yes
+    
+    - name: copy an artifact
+      shell: cp /var/projects/quicksilver-latest.jar /var/projects/quicksilver-`date -u -Iseconds`.jar
+
+    - name: restart app
+      service: name=quicksilver.service state=restarted
+      sudo: true
+      sudo_user: root

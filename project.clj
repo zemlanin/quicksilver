@@ -15,7 +15,9 @@
     [jarohen/nomad "0.7.2"]
     [org.clojure/core.match "0.3.0-alpha4"]
   ]
-  :main ^:skip-aot quicksilver.core
+  :main quicksilver.core
+  :aot [quicksilver.core]
+  :uberjar {:aot :all}
   :target-path "target/%s"
   :repl-options {:init-ns quicksilver.core}
   :profiles {:uberjar {:aot :all}})

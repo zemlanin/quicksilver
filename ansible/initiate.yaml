@@ -1,8 +1,13 @@
 ---
 - hosts: webservers
   remote_user: root
+  gather_facts: no
 
   tasks:
+    - file: path=/var/projects/ state=directory mode=0755
+    - file: path=/var/log/quicksilver/ state=directory mode=0755
+    - copy: src=./quicksilver-upstart.service dest=/lib/systemd/system/quicksilver.service
+
     - name: update yum
       shell: rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && yum -y update
 

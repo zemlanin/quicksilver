@@ -1,0 +1,12 @@
+systemctl daemon-reload
+systemctl enable quicksilver.service
+systemctl start quicksilver.service
+
+[Unit]
+Description=Quicksilver
+After=network.target
+
+[Service]
+WorkingDirectory=/var/projects
+Environment="NOMAD_ENV=prod"
+ExecStart=/usr/bin/java -jar /var/projects/quicksilver-latest.jar -Xmx400m -Xms200m >> /var/log/quicksilver/qs.log 2>&1
