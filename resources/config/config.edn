@@ -1,6 +1,8 @@
 {:postgres {:db "quicksilver"
             :user "zem"
             :password ""}
+  :port 8080
+  :debug true
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"

@@ -6,6 +6,7 @@
   :dependencies [
     [org.clojure/clojure "1.6.0"]
     [org.clojure/java.jdbc "0.4.1"]
+    [org.clojure/data.json "0.2.6"]
     [org.postgresql/postgresql "9.4-1201-jdbc41"]
     [korma "0.4.2"]
     [http-kit "2.1.19"]

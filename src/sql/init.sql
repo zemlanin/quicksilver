@@ -9,3 +9,10 @@ CREATE TABLE messages
 
 INSERT INTO messages ("author", "text", "type") VALUES
   ('a.verinov', 'something', 'uno');
+
+CREATE TABLE slack_tokens
+(
+  id serial primary key NOT NULL,
+  token character varying(100),
+  date_created timestamp without time zone default (now() at time zone 'utc')
+);
