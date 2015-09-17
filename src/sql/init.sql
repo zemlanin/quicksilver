@@ -7,9 +7,6 @@ CREATE TABLE messages
   text character varying(1000) NOT NULL
 );
 
-INSERT INTO messages ("author", "text", "type") VALUES
-  ('a.verinov', 'something', 'uno');
-
 CREATE TABLE slack_tokens
 (
   id serial primary key NOT NULL,

@@ -1,0 +1,60 @@
+---
+- hosts: webservers
+  user: root
+  sudo: yes
+  gather_facts: no
+
+  tasks:
+  - name: ensure postgres user exists
+    user: name=postgres
+  - name: ensure yum cache is up to date
+    shell: yum -y update
+  - name: ensure packages are installed
+    yum: name={{item}}
+    with_items:
+        - postgresql
+        - postgresql-server
+        - postgresql-contrib
+        - python-psycopg2
+  - name: initdb
+    command: service postgresql initdb
+            creates=/var/lib/pgsql/data/postgresql.conf
+
+  - name: Start PostgreSQL and enable at boot
+    service: name=postgresql
+              enabled=yes
+              state=started
+    notify: restart postgresql
+  - name: on PostgreSQL
+    action: command chkconfig postgresql on
+  - name: check PostgreSQL
+    action: service name=postgresql state=started
+  - name: Ensure PostgreSQL is listening on all localhost
+    lineinfile: dest=/var/lib/pgsql/data/postgresql.conf
+      regexp='^#?listen_addresses\s*='
+      line="listen_addresses = '127.0.0.1'"
+      state=present
+    notify: restart postgresql
+  - name: pg_hba
+    copy: src=pg_hba.conf dest=/var/lib/pgsql/data/pg_hba.conf owner=postgres backup=yes
+    notify: restart postgresql
+  handlers:
+    - name: restart postgresql
+      action: service name=postgresql state=restarted
+
+- hosts: webservers
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: no
+  vars_files:
+    - vars/database.yaml
+
+  tasks:
+  - name: ensure database is created
+    postgresql_db: name={{db_name}}
+
+  - name: ensure user has access to database
+    postgresql_user: db={{db_name}} name={{db_user}} password={{db_password}} priv=ALL
+
+  - name: ensure user does not have unnecessary privilege
+    postgresql_user: name={{db_user}} role_attr_flags=NOSUPERUSER,NOCREATEDB
