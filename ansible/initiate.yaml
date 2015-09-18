@@ -33,3 +33,20 @@
 
     - name: make lein executable
       shell: chmod 775 /usr/local/bin/lein
+
+    - name: install nginx
+      yum: name=nginx
+
+    - name: configure nginx
+      copy: src=./quicksilver-nginx.conf dest=/etc/nginx/conf.d/default.conf
+      notify: restart nginx
+
+    - service: name=nginx
+                enabled=yes
+                state=started
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx
+                state=restarted
+
