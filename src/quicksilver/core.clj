@@ -77,7 +77,10 @@
                 "no access"))))
 
 (defroutes all-routes
-  (GET "/" [] "Hello World")
+  (GET "/" [] {:headers {
+                          "Content-Type" "application/json; charset=utf-8"
+                          "Access-Control-Allow-Origin" "*"}
+                :body "Hello World"})
   (context "/text" []
     (GET  "/:msg-type" req get-text-handler)
     (POST "/slack" req slack-text-handler)))

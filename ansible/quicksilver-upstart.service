@@ -8,5 +8,5 @@ After=network.target
 
 [Service]
 WorkingDirectory=/var/projects
-Environment="NOMAD_ENV=prod"
-ExecStart=/usr/bin/java -jar /var/projects/quicksilver-latest.jar -Xmx400m -Xms200m >> /var/log/quicksilver/qs.log 2>&1
+EnvironmentFile=/etc/sysconfig/quicksilver
+ExecStart=/usr/bin/java -jar /var/projects/quicksilver-latest.jar -Xmx400m -Xms200m | tee /var/log/quicksilver/qs.log

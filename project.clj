@@ -7,13 +7,14 @@
     [org.clojure/clojure "1.6.0"]
     [org.clojure/java.jdbc "0.4.1"]
     [org.clojure/data.json "0.2.6"]
-    [org.postgresql/postgresql "9.4-1201-jdbc41"]
-    [korma "0.4.2"]
+    [org.postgresql/postgresql "9.2-1004-jdbc4"]
+    [korma "0.4.2" :exclusions [c3p0 postgresql]]
     [http-kit "2.1.19"]
     [compojure "1.4.0"]
     [ring "1.4.0"]
     [jarohen/nomad "0.7.2"]
     [org.clojure/core.match "0.3.0-alpha4"]
+    [com.mchange/c3p0 "0.9.5.1"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"
