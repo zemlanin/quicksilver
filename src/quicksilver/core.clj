@@ -63,7 +63,7 @@
                             (match
                               [] ["" ""]
                               [msg-type] [msg-type ""]
-                              [msg-type & split-text] [msg-type (apply str split-text)]))]
+                              [msg-type & split-text] [msg-type (clojure.string/join " " split-text)]))]
 
       (match [text token]
         ["" _] (str msg-type ": " (get-msg msg-type))
