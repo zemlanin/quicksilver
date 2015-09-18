@@ -39,7 +39,12 @@
 (defn get-text-handler [{{msg-type :msg-type} :params}]
   (->> (get-msg msg-type)
       (hash-map :text)
-      json/write-str))
+      json/write-str
+      (hash-map
+        :headers {
+                  "Content-Type" "application/json; charset=utf-8"
+                  "Access-Control-Allow-Origin" "*"}
+        :body)))
 
 (defn check-token [token]
   (-> (select slack-tokens
