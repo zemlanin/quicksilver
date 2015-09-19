@@ -7,7 +7,7 @@
       copy: src=./infrastructure/qs.jar
         dest=/var/projects/quicksilver-latest.jar
         force=yes
-    
+
     - name: copy an artifact
       shell: cp /var/projects/quicksilver-latest.jar /var/projects/quicksilver-`date -u -Iseconds`.jar
 
