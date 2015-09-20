@@ -6,6 +6,7 @@
     - vars/database.yaml
 
   tasks:
+    - file: src=/usr/share/zoneinfo/UTC dest=/etc/localtime state=link force=yes
     - file: path=/var/projects/ state=directory mode=0755
     - file: path=/var/log/quicksilver/ state=directory mode=0755
     - copy: src=./quicksilver-upstart.service dest=/lib/systemd/system/quicksilver.service
