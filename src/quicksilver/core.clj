@@ -54,8 +54,13 @@
       (not)))
 
 (def authors #{
-  nil ; so lazy
-  "a.verinov"})
+  "a.verinov"
+  "alxpy"
+  "r.mamedov"
+  "s.taran"
+  "ivan"
+  "i.mozharovsky"
+  "emarchenko"})
 
 (defn slack-text-handler [{{raw-text :text, token :token, author :user_name} :params}]
   (let [[msg-type text] (-> raw-text
@@ -68,7 +73,6 @@
       (match [text token]
         ["" _] (str msg-type ": " (get-msg msg-type))
         [_ nil] (str msg-type ": " (get-msg msg-type))
-        ; TODO: check for tokens and user_name
         :else (if (and (contains? authors author) (check-token token))
                 (-> (insert messages
                       (values {:author (or author ""), :type msg-type, :text text}))
