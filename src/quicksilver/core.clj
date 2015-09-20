@@ -33,18 +33,19 @@
         (where {:type msg-type})
         (limit 1)
         (order :date_created :DESC))
-      (first)
-      (:text)))
+      (first)))
+
+(defn wrap-json-response [resp]
+  (-> resp
+      json/write-str
+      (#(hash-map :body %
+                  :headers {"Content-Type" "application/json; charset=utf-8"
+                            "Access-Control-Allow-Origin" "*"}))))
 
 (defn get-text-handler [{{msg-type :msg-type} :params}]
-  (->> (get-msg msg-type)
-      (hash-map :text)
-      json/write-str
-      (hash-map
-        :headers {
-                  "Content-Type" "application/json; charset=utf-8"
-                  "Access-Control-Allow-Origin" "*"}
-        :body)))
+  (-> (get-msg msg-type)
+      (select-keys [:text])
+      wrap-json-response))
 
 (defn check-token [token]
   (-> (select slack-tokens
@@ -81,10 +82,7 @@
                 "no access"))))
 
 (defroutes all-routes
-  (GET "/" [] {:headers {
-                          "Content-Type" "application/json; charset=utf-8"
-                          "Access-Control-Allow-Origin" "*"}
-                :body "Hello World"})
+  (GET "/" [] (wrap-json-response "Hello World"))
   (context "/text" []
     (GET  "/:msg-type" req get-text-handler)
     (POST "/slack" req slack-text-handler)))
