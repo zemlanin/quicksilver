@@ -11,6 +11,8 @@
             [clojure.set :refer [rename-keys]]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
+            [clj-time.core :as t]
+            [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
 
 (defconfig config (io/resource "config/config.edn"))
@@ -45,6 +47,22 @@
 (defn get-text-handler [{{msg-type :msg-type} :params}]
   (-> (get-msg msg-type)
       (select-keys [:text])
+      wrap-json-response))
+
+(defn is-ready [[wait-after hours-delta]]
+  (= wait-after (mod hours-delta 2)))
+
+(defn get-ready-handler [req]
+  (-> (get-msg "ready")
+      ((juxt
+            #(if (= "-" (:text %)) 1 0)
+            #(-> %
+                :date-created
+                (t/interval (t/now))
+                t/in-hours)))
+      is-ready
+      (if "ready" "wait")
+      (#(hash-map :text %))
       wrap-json-response))
 
 (defn check-token [token]
@@ -84,8 +102,10 @@
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
   (context "/text" []
-    (GET  "/:msg-type" req get-text-handler)
-    (POST "/slack" req slack-text-handler)))
+    (GET  "/:msg-type" [] get-text-handler)
+    (POST "/slack" [] slack-text-handler))
+  (context "/extras" []
+    (GET "/ready" [] get-ready-handler)))
 
 (defn -main [& args]
   (let [handler (if (:debug (config))

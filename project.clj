@@ -15,8 +15,10 @@
     [jarohen/nomad "0.7.2"]
     [org.clojure/core.match "0.3.0-alpha4"]
     [com.mchange/c3p0 "0.9.5.1"]
+    [clj-time "0.11.0"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"
+  :jvm-opts ["-Duser.timezone=UTC"]
   :repl-options {:init-ns quicksilver.core}
   :profiles {:uberjar {:aot :all}})
