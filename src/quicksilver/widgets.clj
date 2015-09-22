@@ -19,8 +19,7 @@
 
 (defn insert-widget-message [text widget]
   (-> (insert messages
-        (values {:type "auto", :text text, :widget-id (:id widget)}))
-      (:text)))
+        (values {:type "auto", :text text, :widget-id (:id widget)}))))
 
 (defn repeat-hash-map->seq [repeat-hash-map]
   "(repeat-hash-map->seq {:a 5 :b 7}) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
@@ -30,10 +29,11 @@
   (let [widget-message (get-widget-message widget)
         source-data (:source-data widget)]
       (if (and widget-message (t/after? (:date-created widget-message) (t/today-at-midnight)))
-        (:text widget-message)
+        (select-keys widget-message [:text])
         (-> (:source-data widget)
             (json/read-str)
             (get "values")
             (repeat-hash-map->seq)
             (rand-nth)
-            (insert-widget-message widget)))))
+            (insert-widget-message widget)
+            (select-keys [:text])))))
