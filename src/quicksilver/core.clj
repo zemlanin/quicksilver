@@ -11,6 +11,7 @@
             [clojure.set :refer [rename-keys]]
             [quicksilver.entities :refer [messages]]
             [quicksilver.slack :as slack]
+            [quicksilver.widgets :as widgets]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
             [clj-time.core :as t]
@@ -56,13 +57,22 @@
       (#(hash-map :text %))
       wrap-json-response))
 
+(defn get-widget-handler [{{widget-id :id} :params}]
+  (-> (widgets/get-widget (read-string widget-id))
+      ((fn [widget] (match widget
+          {:type "random-text"} (widgets/random-text widget)
+          :else {:error "unknown widget type"})))
+      wrap-json-response))
+
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
   (context "/extras" []
-    (GET "/ready" [] get-ready-handler)))
+    (GET "/ready" [] get-ready-handler))
+  (context "/widgets" []
+    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 
 (defn -main [& args]
   (let [handler (if (:debug (config))

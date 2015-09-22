@@ -13,3 +13,19 @@ CREATE TABLE slack_tokens
   token character varying(100),
   date_created timestamp without time zone default (now() at time zone 'utc')
 );
+
+CREATE TYPE widgets_type AS ENUM ('random-text');
+-- ALTER TYPE widgets_type ADD VALUE 'random-text';
+
+CREATE TABLE widgets
+(
+  id serial primary key NOT NULL,
+  type widgets_type NOT NULL,
+  source_data json,
+  date_created timestamp without time zone default (now() at time zone 'utc')
+);
+
+ALTER TABLE messages
+  ALTER type DROP NOT NULL
+  ADD widget_id INTEGER,
+  ADD FOREIGN KEY (widget_id) REFERENCES widgets(id);
