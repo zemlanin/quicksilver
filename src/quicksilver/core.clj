@@ -9,7 +9,7 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
-            [quicksilver.entities :refer [messages]]
+            [quicksilver.entities :refer [messages old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
             [clojure.data.json :as json]
@@ -36,11 +36,6 @@
                   :headers {"Content-Type" "application/json; charset=utf-8"
                             "Access-Control-Allow-Origin" "*"}))))
 
-(defn get-text-handler [{{msg-type :msg-type} :params}]
-  (-> (get-msg msg-type)
-      (select-keys [:text])
-      wrap-json-response))
-
 (defn is-ready [[wait-after hours-delta]]
   (= wait-after (mod hours-delta 2)))
 
@@ -63,8 +58,14 @@
           {:type "random-text"} (widgets/random-text widget)
           {:type "static-text"} (widgets/static-text widget)
           {:type "periodic-text"} (widgets/periodic-text widget)
+          nil {:error "not found"}
           :else {:error "unknown widget type"})))
       wrap-json-response))
+
+(defn get-text-handler [{{msg-type :msg-type} :params :as req}]
+  (get-widget-handler (assoc-in req
+                        [:params :id]
+                        (str (get old-widgets-map msg-type -1)))))
 
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
