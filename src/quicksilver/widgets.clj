@@ -48,8 +48,7 @@
 
   TODO: edge case of (* expires period-length) > epoch  
   "
-  (- (quot (time-coerce/to-long (or date-created (t/now))) 1000)
-    (* value-index period-length)))
+  (t/minus (or date-created (t/epoch)) (t/seconds (* value-index period-length))))
 
 (defn periodic-text [widget]
   (let [widget-message (get-widget-message widget)
@@ -57,6 +56,8 @@
         periodic-values (:values source-data)
         period-length (:expires source-data)
         value-index (max 0 (.indexOf periodic-values (:text widget-message)))
-        base-timestamp (get-base-timestamp (:date-created widget-message) value-index period-length)]
-    (nth periodic-values
-        (quot (mod base-timestamp (* (count periodic-values) period-length)) period-length))))
+        base-timestamp (get-base-timestamp (:date-created widget-message) value-index period-length)
+        time-delta (t/in-seconds (t/interval base-timestamp (t/now)))]
+    (-> periodic-values
+        (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))
+        (#(hash-map :text %)))))
