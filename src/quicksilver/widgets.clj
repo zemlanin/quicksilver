@@ -38,7 +38,8 @@
             (select-keys [:text])))))
 
 (defn static-text [widget]
-  ())
+  (-> (get-widget-message widget)
+      (select-keys [:text])))
 
 (defn get-base-timestamp [date-created value-index period-length]
   "

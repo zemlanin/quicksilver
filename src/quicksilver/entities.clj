@@ -15,7 +15,7 @@
   (entity-fields :id :date_created :token))
 
 (defn pg-object->str [v & ks]
-  (reduce #(assoc %1 %2 (.getValue (%2 %1))) v ks))
+  (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks)))
 
 (defentity widgets
   (prepare (fn [v] (rename-keys v {:date-created :date_created, :source-data :source_data})))
