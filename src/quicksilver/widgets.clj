@@ -43,7 +43,7 @@
 
 (defn get-base-timestamp [date-created value-index period-length]
   "
-  returns unix time (in seconds) of moment, when we assume period have started
+  returns moment in which, we assume, period have started
   `value-index` is used to shift start in a case if user have set a specific value by hand
 
   TODO: edge case of (* expires period-length) > epoch  
