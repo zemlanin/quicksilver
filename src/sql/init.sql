@@ -26,6 +26,6 @@ CREATE TABLE widgets
 );
 
 ALTER TABLE messages
-  ALTER type DROP NOT NULL
+  ALTER type DROP NOT NULL,
   ADD widget_id INTEGER,
   ADD FOREIGN KEY (widget_id) REFERENCES widgets(id);
