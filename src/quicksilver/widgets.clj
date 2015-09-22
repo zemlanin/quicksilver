@@ -3,6 +3,7 @@
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages widgets]]
             [clj-time.core :as t]
+            [clj-time.coerce :as time-coerce]
             [clojure.data.json :as json]))
 
 (defn get-widget [widget-id]
@@ -17,9 +18,9 @@
         (order :date_created :DESC))
       (first)))
 
-(defn insert-widget-message [text widget]
+(defn insert-auto-message [text widget]
   (-> (insert messages
-        (values {:type "auto", :text text, :widget-id (:id widget)}))))
+        (values {:text text, :widget-id (:id widget)}))))
 
 (defn repeat-hash-map->seq [repeat-hash-map]
   "(repeat-hash-map->seq {:a 5 :b 7}) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
@@ -27,13 +28,34 @@
 
 (defn random-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (:source-data widget)]
+        source-data (json/read-str (:source-data widget) :key-fn keyword)]
       (if (and widget-message (t/after? (:date-created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
-        (-> (:source-data widget)
-            (json/read-str)
-            (get "values")
+        (-> (:values source-data)
             (repeat-hash-map->seq)
             (rand-nth)
-            (insert-widget-message widget)
+            (insert-auto-message widget)
             (select-keys [:text])))))
+
+(defn static-text [widget]
+  ())
+
+(defn get-base-timestamp [date-created value-index period-length]
+  "
+  returns unix time (in seconds) of moment, when we assume period have started
+  `value-index` is used to shift start in a case if user have set a specific value by hand
+
+  TODO: edge case of (* expires period-length) > epoch  
+  "
+  (- (quot (time-coerce/to-long (or date-created (t/now))) 1000)
+    (* value-index period-length)))
+
+(defn periodic-text [widget]
+  (let [widget-message (get-widget-message widget)
+        source-data (json/read-str (:source-data widget) :key-fn keyword)
+        periodic-values (:values source-data)
+        period-length (:expires source-data)
+        value-index (max 0 (.indexOf periodic-values (:text widget-message)))
+        base-timestamp (get-base-timestamp (:date-created widget-message) value-index period-length)]
+    (nth periodic-values
+        (quot (mod base-timestamp (* (count periodic-values) period-length)) period-length))))

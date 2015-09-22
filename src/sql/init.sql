@@ -15,7 +15,6 @@ CREATE TABLE slack_tokens
 );
 
 CREATE TYPE widgets_type AS ENUM ('random-text');
--- ALTER TYPE widgets_type ADD VALUE 'random-text';
 
 CREATE TABLE widgets
 (
@@ -29,3 +28,9 @@ ALTER TABLE messages
   ALTER type DROP NOT NULL,
   ADD widget_id INTEGER,
   ADD FOREIGN KEY (widget_id) REFERENCES widgets(id);
+
+ALTER TABLE widgets
+  ADD title character varying(100) NOT NULL default '';
+
+ALTER TYPE widgets_type ADD VALUE 'static-text';
+ALTER TYPE widgets_type ADD VALUE 'periodic-text';

@@ -61,6 +61,8 @@
   (-> (widgets/get-widget (read-string widget-id))
       ((fn [widget] (match widget
           {:type "random-text"} (widgets/random-text widget)
+          {:type "static-text"} (widgets/static-text widget)
+          {:type "periodic-text"} (widgets/periodic-text widget)
           :else {:error "unknown widget type"})))
       wrap-json-response))
 
