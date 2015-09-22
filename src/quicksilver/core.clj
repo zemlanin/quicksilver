@@ -89,15 +89,14 @@
                               [msg-type] [msg-type ""]
                               [msg-type & split-text] [msg-type (clojure.string/join " " split-text)]))]
 
-      (match [text token]
-        ["" _] (str msg-type ": " (get-msg msg-type))
-        [_ nil] (str msg-type ": " (get-msg msg-type))
-        :else (if (and (contains? authors author) (check-token token))
-                (-> (insert messages
-                      (values {:author (or author ""), :type msg-type, :text text}))
-                    (:text)
-                    (->> (str msg-type ": ")))
-                "no access"))))
+      (match [text (contains? authors author) (check-token token)]
+        ["" _ _] (str msg-type ": " (:text (get-msg msg-type)))
+        [_ _ false] "no access (unknown token)"
+        [_ false _] "no access (unknown user)"
+        :else (-> (insert messages
+                    (values {:author author, :type msg-type, :text text}))
+                  (:text)
+                  (#(str "+" msg-type ": " %))))))
 
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
