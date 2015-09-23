@@ -1,10 +1,10 @@
 (ns quicksilver.core
   (:gen-class)
   (:require [ring.middleware.reload :as reload]
+            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
-            [compojure.handler :refer [site]]
             [nomad :refer [defconfig]]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -63,8 +63,7 @@
       wrap-json-response))
 
 (defn get-text-handler [{{msg-type :msg-type} :params :as req}]
-  (get-widget-handler (assoc-in req
-                        [:params :id]
+  (get-widget-handler (assoc-in req [:params :id]
                         (str (get old-widgets-map msg-type -1)))))
 
 (defroutes all-routes
@@ -72,13 +71,13 @@
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
-  (context "/extras" []
-    (GET "/ready" [] get-ready-handler))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 
 (defn -main [& args]
-  (let [handler (if (:debug (config))
-                  (reload/wrap-reload (site #'all-routes))
-                  (site all-routes))]
+  (let [ring-defaults-config (assoc-in site-defaults [:security :anti-forgery]
+            {:read-token (fn [req] (-> req :params :csrf-token))})
+        handler (if (:debug (config))
+                  (reload/wrap-reload (wrap-defaults #'all-routes ring-defaults-config))
+                  (wrap-defaults all-routes ring-defaults-config))]
     (run-server handler (select-keys (config) [:port]))))

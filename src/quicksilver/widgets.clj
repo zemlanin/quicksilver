@@ -29,10 +29,10 @@
 
 (defn random-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (json/read-str (:source-data widget) :key-fn ->kebab-case-keyword)]
+        source-data (json/read-str (:source-data widget))]
       (if (and widget-message (t/after? (:date-created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
-        (-> (:values source-data)
+        (-> (get source-data "values")
             (repeat-hash-map->seq)
             (rand-nth)
             (insert-auto-message widget)
