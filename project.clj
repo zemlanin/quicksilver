@@ -16,6 +16,7 @@
     [org.clojure/core.match "0.3.0-alpha4"]
     [com.mchange/c3p0 "0.9.5.1"]
     [clj-time "0.11.0"]
+    [camel-snake-kebab "0.3.2"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"

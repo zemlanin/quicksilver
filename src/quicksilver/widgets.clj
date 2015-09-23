@@ -4,6 +4,7 @@
             [quicksilver.entities :refer [messages widgets]]
             [clj-time.core :as t]
             [clj-time.coerce :as time-coerce]
+            [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]))
 
 (defn get-widget [widget-id]
@@ -28,7 +29,7 @@
 
 (defn random-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (json/read-str (:source-data widget) :key-fn keyword)]
+        source-data (json/read-str (:source-data widget) :key-fn ->kebab-case-keyword)]
       (if (and widget-message (t/after? (:date-created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
         (-> (:values source-data)
@@ -52,9 +53,9 @@
 
 (defn periodic-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (json/read-str (:source-data widget) :key-fn keyword)
+        source-data (json/read-str (:source-data widget) :key-fn ->kebab-case-keyword)
         periodic-values (:values source-data)
-        period-length (:expires source-data)
+        period-length (:switches-every source-data)
         value-index (max 0 (.indexOf periodic-values (:text widget-message)))
         base-timestamp (get-base-timestamp (:date-created widget-message) value-index period-length)
         time-delta (t/in-seconds (t/interval base-timestamp (t/now)))]
