@@ -1,7 +1,8 @@
 (ns quicksilver.core
   (:gen-class)
   (:require [ring.middleware.reload :as reload]
-            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+            [ring.middleware.keyword-params]
+            [ring.middleware.params]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
@@ -12,8 +13,10 @@
             [quicksilver.entities :refer [messages old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
+            [quicksilver.websockets :as websockets]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
+            [clojure.core.async :as async :refer [put!]]
             [clj-time.core :as t]
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
@@ -66,18 +69,27 @@
   (get-widget-handler (assoc-in req [:params :id]
                         (str (get old-widgets-map msg-type -1)))))
 
+(defn ping-handler [req]
+  (put! websockets/pings {:subj :pong})
+  (wrap-json-response "pong"))
+
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
+  (GET "/ping" [] ping-handler)
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
+  (GET  "/ws" [] websockets/ws-handler)
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 
+(def my-app
+  (-> all-routes
+      ring.middleware.keyword-params/wrap-keyword-params
+      ring.middleware.params/wrap-params))
+
 (defn -main [& args]
-  (let [ring-defaults-config (assoc-in site-defaults [:security :anti-forgery]
-            {:read-token (fn [req] (-> req :params :csrf-token))})
-        handler (if (:debug (config))
-                  (reload/wrap-reload (wrap-defaults #'all-routes ring-defaults-config))
-                  (wrap-defaults all-routes ring-defaults-config))]
+  (let [handler (if (:debug (config))
+                  (reload/wrap-reload #'my-app)
+                  my-app)]
     (run-server handler (select-keys (config) [:port]))))
