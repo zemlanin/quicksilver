@@ -2,6 +2,8 @@
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages slack-tokens old-widgets-map widgets]]
+            [quicksilver.websockets :as websockets]
+            [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]))
 
 (defn get-msg [widget-id]
@@ -51,4 +53,6 @@
                   (insert messages
                     (values {:author author, :widget-id widget-id, :text text, :type msg-type}))
                   (:text)
-                  (#(str "+" msg-type ": " %))))))
+                  (#(do
+                    (put! websockets/pings {:subj :update-widget :widget-id widget-id})
+                    (str "+" msg-type ": " %)))))))

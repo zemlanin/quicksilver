@@ -6,11 +6,11 @@
 (def pings (chan))
 (def sub-pings (pub pings :subj))
 
-(defn process
-  [_]
-  (let [ch (chan)]
-    (sub sub-pings :pong ch)
-    ch))
+(defn process [{route-params :route-params :as req}]
+  (when-let [subj (:subj route-params)]
+    (let [ch (chan)]
+      (sub sub-pings (keyword subj) ch)
+      ch)))
 
 (defn ws-handler [request]
   (let [c (process request)]

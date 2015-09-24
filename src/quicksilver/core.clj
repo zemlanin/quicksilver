@@ -13,10 +13,8 @@
             [quicksilver.entities :refer [messages old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
-            [quicksilver.websockets :as websockets]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
-            [clojure.core.async :as async :refer [put!]]
             [clj-time.core :as t]
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
@@ -69,17 +67,12 @@
   (get-widget-handler (assoc-in req [:params :id]
                         (str (get old-widgets-map msg-type -1)))))
 
-(defn ping-handler [req]
-  (put! websockets/pings {:subj :pong})
-  (wrap-json-response "pong"))
-
 (defroutes all-routes
   (GET "/" [] (wrap-json-response "Hello World"))
-  (GET "/ping" [] ping-handler)
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
-  (GET  "/ws" [] websockets/ws-handler)
+  (GET "/ws/:subj" [] websockets/ws-handler)
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 
