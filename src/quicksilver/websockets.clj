@@ -16,6 +16,8 @@
   (let [c (process request)]
     (with-channel request channel
       (on-close channel (fn [status] (close! c)))
-      (go (while true
-        (send! channel {:status 200 :body (str (<!! c))})))
+      (go-loop []
+        (when-let [v (<! c)]
+          (send! channel {:status 200 :body (str v)})
+          (recur)))
       (on-receive channel (fn [data] (send! channel data))))))
