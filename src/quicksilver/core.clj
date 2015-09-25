@@ -47,7 +47,7 @@
           {:type "periodic-text"} (widgets/periodic-text widget)
           nil {:error "not found"}
           :else {:error "unknown widget type"})))
-      (add-websockets-endpoint widget-id)
+      (add-websockets-endpoint (read-string widget-id))
       wrap-json-response))
 
 (defn get-text-handler [{{msg-type :msg-type} :params :as req}]
