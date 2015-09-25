@@ -10,11 +10,13 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
-            [quicksilver.entities :refer [messages old-widgets-map]]
+            [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
+            [quicksilver.routes :as routes]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
+            [camel-snake-kebab.core :refer [->camelCaseString]]
             [clj-time.core :as t]
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
@@ -23,35 +25,18 @@
 
 (defdb db (postgres (:postgres (config))))
 
-(defn get-msg [msg-type]
-  (-> (select messages
-        (where {:type msg-type})
-        (limit 1)
-        (order :date_created :DESC))
-      (first)))
-
 (defn wrap-json-response [resp]
   (-> resp
-      json/write-str
+      (json/write-str :key-fn ->camelCaseString)
       (#(hash-map :body %
                   :headers {"Content-Type" "application/json; charset=utf-8"
                             "Access-Control-Allow-Origin" "*"}))))
 
-(defn is-ready [[wait-after hours-delta]]
-  (= wait-after (mod hours-delta 2)))
-
-(defn get-ready-handler [req]
-  (-> (get-msg "ready")
-      ((juxt
-            #(if (= "-" (:text %)) 1 0)
-            #(-> %
-                :date-created
-                (t/interval (t/now))
-                t/in-hours)))
-      is-ready
-      (if "ready" "wait")
-      (#(hash-map :text %))
-      wrap-json-response))
+(defn add-websockets-endpoint [resp widget-id]
+  (if (:error resp)
+    resp
+    (assoc resp :ws {:url (routes/absolute websockets/url :subj "update-widget")
+                      :conds [{:widget-id widget-id}]})))
 
 (defn get-widget-handler [{{widget-id :id} :params}]
   (-> (widgets/get-widget (read-string widget-id))
@@ -61,6 +46,7 @@
           {:type "periodic-text"} (widgets/periodic-text widget)
           nil {:error "not found"}
           :else {:error "unknown widget type"})))
+      (add-websockets-endpoint widget-id)
       wrap-json-response))
 
 (defn get-text-handler [{{msg-type :msg-type} :params :as req}]
@@ -72,7 +58,7 @@
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
-  (GET "/ws/:subj" [] websockets/ws-handler)
+  (GET websockets/url [] websockets/ws-handler)
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 

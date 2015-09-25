@@ -3,6 +3,7 @@
             :password ""}
   :port 8080
   :debug true
+  :base-url "localhost"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -10,4 +11,5 @@
     "prod" {:postgres {:user "quicksilver"
                        :password #nomad/env-var "DB_PASSWORD"
                        :post "5432"}
+            :base-url "bwd.cat"
             :debug false}}}
