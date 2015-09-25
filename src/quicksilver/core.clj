@@ -37,7 +37,7 @@
   (if (:error resp)
     resp
     (assoc resp :ws {:url (routes/absolute websockets/url :subj "update-widget")
-                      :conds [{:widget-id widget-id}]})))
+                      :conds {:widget-id widget-id}})))
 
 (defn get-widget-handler [{{widget-id :id} :params}]
   (-> (widgets/get-widget (read-string widget-id))
