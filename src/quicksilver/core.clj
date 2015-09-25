@@ -13,6 +13,7 @@
             [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
+            [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
