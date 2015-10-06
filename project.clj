@@ -18,6 +18,8 @@
     [clj-time "0.11.0"]
     [camel-snake-kebab "0.3.2"]
     [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+    [hiccup "1.0.5"]
+    [com.draines/postal "1.11.3"]
   ]
   :main ^:skip-aot quicksilver.core
   :target-path "target/%s"

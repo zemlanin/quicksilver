@@ -3,6 +3,7 @@
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.keyword-params]
             [ring.middleware.params]
+            [ring.middleware.cookies]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
@@ -15,6 +16,7 @@
             [quicksilver.widgets :as widgets]
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
+            [quicksilver.web.auth]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :refer [->camelCaseString]]
@@ -60,13 +62,18 @@
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
   (GET websockets/url [] websockets/ws-handler)
+  (context quicksilver.web.auth/url []
+    (GET "/" [] quicksilver.web.auth/handler)
+    (POST "/" [] quicksilver.web.auth/post-handler)
+    (GET [quicksilver.web.auth/token-url, :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 
 (def my-app
   (-> all-routes
       ring.middleware.keyword-params/wrap-keyword-params
-      ring.middleware.params/wrap-params))
+      ring.middleware.params/wrap-params
+      ring.middleware.cookies/wrap-cookies))
 
 (defn -main [& args]
   (let [handler (if (:debug (config))
