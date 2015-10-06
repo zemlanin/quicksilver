@@ -4,6 +4,7 @@
   :port 8080
   :debug true
   :base-url "localhost"
+  :auth-salt "super"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -12,4 +13,5 @@
                        :password #nomad/env-var "DB_PASSWORD"
                        :post "5432"}
             :base-url "bwd.cat"
+            :auth-salt #nomad/env-var "QS_AUTH_SALT"
             :debug false}}}

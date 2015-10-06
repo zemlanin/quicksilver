@@ -1,6 +1,6 @@
 (ns quicksilver.entities
   (:gen-class)
-  (:require [korma.core :refer [defentity prepare transform entity-fields table]]
+  (:require [korma.core :refer [defentity prepare transform entity-fields table belongs-to has-many]]
             [clojure.set :refer [rename-keys]]))
 
 (defentity messages
@@ -36,4 +36,16 @@
   (table :auth_tokens)
   (prepare (fn [v] (rename-keys v {:date-created :date_created})))
   (transform (fn [v] (rename-keys v {:date_created :date-created})))
-  (entity-fields :id :date_created :email))
+  (entity-fields :id :hash :date_created :email))
+
+(defentity users
+  (prepare (fn [v] (rename-keys v {:date-created :date_created})))
+  (transform (fn [v] (rename-keys v {:date_created :date-created})))
+  (has-many sessions {:fk :user_id})
+  (entity-fields :id :email :date_created))
+
+(defentity sessions
+  (prepare (fn [v] (rename-keys v {:date-created :date_created, :user-id :user_id})))
+  (transform (fn [v] (rename-keys v {:date_created :date-created, :user_id :user-id})))
+  (belongs-to users {:fk :user_id})
+  (entity-fields :id :user_id :date_created))
