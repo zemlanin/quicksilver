@@ -28,10 +28,10 @@
 
 (def authors #{
   "a.verinov"
-  "alxpy"
+  "a.kuzmenko"
   "r.mamedov"
   "s.taran"
-  "ivan"
+  "i.dazhuk"
   "i.mozharovsky"
   "emarchenko"})
 
