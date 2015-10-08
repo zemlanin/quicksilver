@@ -56,3 +56,7 @@ CREATE TABLE sessions
   user_id INTEGER REFERENCES users (id),
   date_created timestamp without time zone default (now() at time zone 'utc')
 );
+
+ALTER TABLE widgets
+  ADD user_id INTEGER NOT NULL,
+  ADD FOREIGN KEY (user_id) REFERENCES users(id);

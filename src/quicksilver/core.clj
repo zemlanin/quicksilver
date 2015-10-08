@@ -17,6 +17,7 @@
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
             [quicksilver.web.auth]
+            [quicksilver.web.widgets]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :refer [->camelCaseString]]
@@ -67,6 +68,9 @@
     (POST "/" [] quicksilver.web.auth/post-handler)
     (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
     (GET [quicksilver.web.auth/token-url, :id #"[0-9]+", :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
+  (context quicksilver.web.widgets/url []
+    (GET "/"                                [] quicksilver.web.widgets/handler)
+    (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
 

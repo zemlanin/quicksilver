@@ -41,7 +41,6 @@
 (defentity users
   (prepare (fn [v] (rename-keys v {:date-created :date_created})))
   (transform (fn [v] (rename-keys v {:date_created :date-created})))
-  (has-many sessions {:fk :user_id})
   (entity-fields :id :email :date_created))
 
 (defentity sessions
