@@ -17,7 +17,7 @@
                             (first))))
 
 (defn handler [{{{auth :value} "auth"} :cookies :as request}]
-  (if-let [user (get-session-user auth)] ;; TODO: check in db
+  (if-let [user (get-session-user auth)]
     (html
       [:ul (map (fn [w]
         [:a {:href (absolute (str url widget-url) :id (str (:id w)))}
@@ -25,7 +25,7 @@
     (redirect (absolute quicksilver.web.auth/url))))
 
 (defn widget-handler  [{{{auth :value} "auth"} :cookies {widget-id :id} :route-params :as request}]
-  (if-let [user (get-session-user auth)] ;; TODO: check in db
+  (if-let [user (get-session-user auth)]
     (html
       (let [w (get-user-widgets (:id_2 user) (read-string widget-id))]
             [:p (:id w) "/" (:type w) "/" (:source-data w)]))

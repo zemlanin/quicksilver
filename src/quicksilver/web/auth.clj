@@ -3,7 +3,8 @@
   (:require [nomad :refer [defconfig]]
             [clojure.java.io :as io]
             [korma.core :refer [select delete where limit insert values join with]]
-            [korma.db :refer [ transaction]]
+            [korma.db :refer [transaction]]
+            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [hiccup.core :refer [html]]
             [quicksilver.entities :refer [auth-tokens users sessions]]
             [quicksilver.routes :refer [absolute]]
@@ -38,15 +39,17 @@
           (where {:id session-id}))
         (first))))
 
-(defn handler [{{{auth :value} "auth"} :cookies :as request}]
-  (if-let [user (get-session-user auth)] ;; TODO: check in db
+(defn handler [{{{auth :value} "auth"} :cookies form-errors :form-errors :as request}]
+  (if-let [user (get-session-user auth)]
     (html
       [:div (str "hi, " (:email user))]
       [:a {:href (absolute (str url logout-url))} "logout"])
     (html
       [:form {:action url, :method "POST"}
         [:input {:type "email", :placeholder "email", :name "email"}]
-        [:input {:type "submit"}]])))
+        [:input {:type "hidden", :name "__anti-forgery-token", :value *anti-forgery-token*}]
+        [:input {:type "submit"}]]
+      (when form-errors [:span {:style "color: red"} form-errors]))))
 
 (defn get-auth-token [id]
   (-> (select auth-tokens
@@ -64,19 +67,24 @@
   (-> (insert auth-tokens
         (values {:hash hashed, :email email}))))
 
-(defn post-handler [{{email "email"} :form-params :as request}]
-  (delete auth-tokens
-    (where {:email email}))
+(defn validate-email [email]
+  (some? (re-matches #"[^@\s]+@[^@\s\.]+\.[^@\s]+" email)))
 
-  (let [token (fixed-length-password 30)
-        hashed (encrypt token)
-        id (:id (insert-auth-token hashed email))]
-    (send-message {:from (str "auth@" (base-url))
-                    :to email
-                    :subject "Auth link for quicksilver"
-                    :body (absolute (str url token-url) :id (str id) :token token)}))
-  (html
-    [:div "auth link is sent to email"]))
+(defn post-handler [{{email "email"} :form-params :as request}]
+  (if-not (validate-email email)
+    (handler (assoc request :form-errors "invalid email"))
+    (do
+      (delete auth-tokens (where {:email email}))
+
+      (let [token (fixed-length-password 30)
+            hashed (encrypt token)
+            id (:id (insert-auth-token hashed email))]
+        (send-message {:from (str "auth@" (base-url))
+                        :to email
+                        :subject "Auth link for quicksilver"
+                        :body (absolute (str url token-url) :id (str id) :token token)}))
+      (html
+        [:div "auth link is sent to email"]))))
 
 (defn insert-session [user-id session-id]
   (insert sessions
