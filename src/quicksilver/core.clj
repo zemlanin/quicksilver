@@ -4,6 +4,8 @@
             [ring.middleware.keyword-params]
             [ring.middleware.params]
             [ring.middleware.cookies]
+            [ring.middleware.session]
+            [ring.middleware.anti-forgery]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
@@ -57,22 +59,34 @@
   (get-widget-handler (assoc-in req [:params :id]
                         (str (get old-widgets-map msg-type -1)))))
 
-(defroutes all-routes
-  (GET "/" [] (wrap-json-response "Hello World"))
+(def web-routes
+  (wrap-routes
+    (routes
+      (GET "/" [] (wrap-json-response "Hello World"))
+      (context quicksilver.web.auth/url []
+        (GET "/" [] quicksilver.web.auth/handler)
+        (POST "/" [] quicksilver.web.auth/post-handler)
+        (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
+        (GET [quicksilver.web.auth/token-url, :id #"[0-9]+", :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
+      (context quicksilver.web.widgets/url []
+        (GET "/"                                [] quicksilver.web.widgets/handler)
+        (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
+
+    #(-> %
+          ring.middleware.anti-forgery/wrap-anti-forgery
+          ring.middleware.session/wrap-session)))
+
+(defroutes api-routes
   (context "/text" []
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
   (GET websockets/url [] websockets/ws-handler)
-  (context quicksilver.web.auth/url []
-    (GET "/" [] quicksilver.web.auth/handler)
-    (POST "/" [] quicksilver.web.auth/post-handler)
-    (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
-    (GET [quicksilver.web.auth/token-url, :id #"[0-9]+", :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
-  (context quicksilver.web.widgets/url []
-    (GET "/"                                [] quicksilver.web.widgets/handler)
-    (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
+
+(defroutes all-routes
+  web-routes
+  api-routes)
 
 (def my-app
   (-> all-routes
