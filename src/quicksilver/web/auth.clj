@@ -82,7 +82,7 @@
         (send-message {:from (str "auth@" (base-url))
                         :to email
                         :subject "Auth link for quicksilver"
-                        :body (absolute (str url token-url) :id (str id) :token token)}))
+                        :body (absolute (str url token-url) :id id :token token)}))
       (html
         [:div "auth link is sent to email"]))))
 

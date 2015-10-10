@@ -19,14 +19,15 @@
 (defn handler [{{{auth :value} "auth"} :cookies :as request}]
   (if-let [user (get-session-user auth)]
     (html
-      [:ul (map (fn [w]
-        [:a {:href (absolute (str url widget-url) :id (str (:id w)))}
-          [:li (:id w) "/" (:type w) "/" (:source-data w)]]) (get-user-widgets (:id_2 user)))])
+      [:ul (map (fn [{id :id, type :type, source-data :source-data}]
+                    [:a {:href (absolute (str url widget-url) :id id)}
+                      [:li id " / " type " / " source-data]])
+            (get-user-widgets (:id_2 user)))])
     (redirect (absolute quicksilver.web.auth/url))))
 
 (defn widget-handler  [{{{auth :value} "auth"} :cookies {widget-id :id} :route-params :as request}]
   (if-let [user (get-session-user auth)]
     (html
       (let [w (get-user-widgets (:id_2 user) (read-string widget-id))]
-            [:p (:id w) "/" (:type w) "/" (:source-data w)]))
+            [:p (:id w) " / " (:type w) " / " (:source-data w)]))
     (redirect (absolute quicksilver.web.auth/url))))

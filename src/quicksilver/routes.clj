@@ -20,4 +20,4 @@
                 url))
   ([url & ps] (let [params (apply hash-map ps)
                     paramless-url (absolute url)]
-                  (reduce (fn [u [k v]] (clojure.string/replace u (str k) v)) paramless-url params))))
+                  (reduce (fn [u [k v]] (clojure.string/replace u (str k) (str v))) paramless-url params))))
