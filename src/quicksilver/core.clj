@@ -9,6 +9,7 @@
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
+            [compojure.coercions :refer [as-int]]
             [nomad :refer [defconfig]]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -44,20 +45,20 @@
     (assoc resp :ws {:url (routes/absolute websockets/url :subj "update-widget")
                       :conds {:widget-id widget-id}})))
 
-(defn get-widget-handler [{{widget-id :id} :params}]
-  (-> (widgets/get-widget (read-string widget-id))
+(defn get-widget-handler [{{widget-id :id} :route-params :as req}]
+  (-> (widgets/get-widget widget-id)
       ((fn [widget] (match widget
           {:type "random-text"} (widgets/random-text widget)
           {:type "static-text"} (widgets/static-text widget)
           {:type "periodic-text"} (widgets/periodic-text widget)
           nil {:error "not found"}
           :else {:error "unknown widget type"})))
-      (add-websockets-endpoint (read-string widget-id))
+      (add-websockets-endpoint widget-id)
       wrap-json-response))
 
-(defn get-text-handler [{{msg-type :msg-type} :params :as req}]
-  (get-widget-handler (assoc-in req [:params :id]
-                        (str (get old-widgets-map msg-type -1)))))
+(defn get-text-handler [{{msg-type :msg-type} :route-params :as req}]
+  (get-widget-handler (assoc-in req [:route-params :id]
+                        (get old-widgets-map msg-type -1))))
 
 (def web-routes
   (wrap-routes
@@ -82,7 +83,7 @@
     (POST "/slack" [] slack/text-handler))
   (GET websockets/url [] websockets/ws-handler)
   (context "/widgets" []
-    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
+    (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
 (defroutes all-routes
   web-routes
