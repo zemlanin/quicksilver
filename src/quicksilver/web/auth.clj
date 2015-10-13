@@ -97,12 +97,12 @@
       (values {:email email}))))
 
 (defn token-handler [{{id :id, token :token} :route-params :as request}]
-  (let [auth-token (get-auth-token (read-string id))]
+  (let [auth-token (get-auth-token id)]
     (if (password/check (add-salt token) (:hash auth-token))
       (let [user (get-or-create-user (:email auth-token))
             session-id (fixed-length-password 30)]
         (transaction
-          (delete auth-tokens (where {:id (read-string id)}))
+          (delete auth-tokens (where {:id id}))
           (insert-session (:id user) session-id))
           {:body "you're in"
             :cookies {"auth" {:value session-id
