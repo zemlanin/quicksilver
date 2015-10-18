@@ -5,7 +5,9 @@
             [clj-time.core :as t]
             [clj-time.coerce :as time-coerce]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [schema.core :as s]
+            ))
 
 (defn get-widget [widget-id]
   (-> (select widgets
@@ -62,3 +64,12 @@
     (-> periodic-values
         (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))
         (#(hash-map :text %)))))
+
+(def data-schemas {
+  :random-text {
+    :values [{:text s/Str
+              :chance s/Int}]}
+  :periodic-text {
+    :values [s/Str]
+    :switches-every s/Int}
+  })
