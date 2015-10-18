@@ -17,6 +17,7 @@
 
 (defconfig config (io/resource "config/config.edn"))
 (defn base-url [] (:base-url (config)))
+(defn email-config [] (:email (config)))
 
 (defn fixed-length-password
   ([] (fixed-length-password 8))
@@ -79,7 +80,8 @@
       (let [token (fixed-length-password 30)
             hashed (encrypt token)
             id (:id (insert-auth-token hashed email))]
-        (send-message {:from (str "auth@" (base-url))
+        (send-message (email-config)
+                      {:from (str "auth@" (base-url))
                         :to email
                         :subject "Auth link for quicksilver"
                         :body (absolute (str url token-url) :id id :token token)}))

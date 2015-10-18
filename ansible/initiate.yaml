@@ -23,6 +23,12 @@
                   line='QS_AUTH_SALT="{{qs_auth_salt}}"'
                   state=present
 
+    - name: check ENV POSTMARK_TOKEN
+      lineinfile: dest=/etc/sysconfig/quicksilver
+                  regexp='^POSTMARK_TOKEN='
+                  line='POSTMARK_TOKEN="{{postmark_token}}"'
+                  state=present
+
     - name: check ENV NOMAD_ENV
       lineinfile: dest=/etc/sysconfig/quicksilver
                   regexp='^NOMAD_ENV='
