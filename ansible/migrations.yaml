@@ -1,0 +1,73 @@
+---
+- hosts: webservers
+  vars:
+    mig_re: '.*/migration-(\d+).sql'
+    remote_fact: "/etc/ansible/facts.d/migrations.fact"
+    remote_facts_dir: "/etc/ansible/facts.d"
+    remote_migrations: "/tmp/migrations"
+  vars_files:
+    - vars/database.yaml
+
+  tasks:
+    - setup: filter=ansible_local
+      register: local_facts
+
+    - file: path={{remote_facts_dir}} state=directory mode=0755
+      when: local_facts.ansible_facts == {}
+
+    - name: create migrations fact
+      when: local_facts.ansible_facts == {}
+      copy: src=../resources/migrations/migrations.fact dest={{remote_fact}}
+
+    - set_fact:
+          latest_version: "{{ansible_local.migrations.latest.version}}"
+      when: local_facts.ansible_facts != {}
+
+    - set_fact:
+          latest_version: "-1"
+      when: local_facts.ansible_facts == {}
+
+    - debug: msg={{ latest_version }}
+
+    - name: get new patches
+      set_fact: patch=item
+      when: item | search(mig_re) and
+            item | regex_replace(mig_re, '\\1') | int > latest_version | int
+      with_fileglob:
+        - ../resources/migrations/*.sql
+      register: patches_results
+
+    - set_fact:
+          patches: "{{patches_results.results|selectattr('item', 'string')|map(attribute='item')|list}}"
+      when: patches_results.results | default(false)
+
+    - name: get new patches_ids
+      set_fact: patch_id={{ item | regex_replace(mig_re, '\\1')}}
+      with_items: "patches"
+      register: patches_ids_results
+
+    - set_fact:
+          patches_ids: "{{patches_ids_results.results|map(attribute='ansible_facts.patch_id')|map('int')|list|sort}}"
+      when: patches_ids_results.results | default(false)
+
+    - debug: var=patches
+
+    - file: path={{remote_migrations}} state=directory mode=0755
+    - name: copy tables dump
+      when: patches
+      copy: src={{ item }} dest={{remote_migrations}}
+      with_items: "patches"
+      notify: import tables dump
+
+    - name: update latest migration version
+      when: patches
+      lineinfile:
+        dest: "{{remote_fact}}"
+        regexp: '^version='
+        line: "version={{patches_ids|last}}"
+        state: present
+
+  handlers:
+    - name: import tables dump
+      shell: "PGPASSWORD='{{db_password}}' psql {{db_name}} -U {{db_user}} -h localhost < {{remote_migrations}}/{{item | basename}}"
+      with_items: "patches"
