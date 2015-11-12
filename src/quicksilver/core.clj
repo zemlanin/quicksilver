@@ -10,10 +10,9 @@
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
             [compojure.coercions :refer [as-int]]
-            [nomad :refer [defconfig]]
-            [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
+            [quicksilver.config :refer [config]]
             [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
@@ -27,8 +26,6 @@
             [clj-time.core :as t]
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
-
-(defconfig config (io/resource "config/config.edn"))
 
 (defdb db (postgres (:postgres (config))))
 

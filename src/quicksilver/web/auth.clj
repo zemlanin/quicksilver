@@ -1,7 +1,6 @@
 (ns quicksilver.web.auth
   (:gen-class)
-  (:require [nomad :refer [defconfig]]
-            [clojure.java.io :as io]
+  (:require [quicksilver.config :refer [config]]
             [korma.core :refer [select delete where limit insert values join with]]
             [korma.db :refer [transaction]]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
@@ -15,7 +14,6 @@
 (def token-url "/:id/:token")
 (def logout-url "/out")
 
-(defconfig config (io/resource "config/config.edn"))
 (defn base-url [] (:base-url (config)))
 (defn email-config [] (:email (config)))
 

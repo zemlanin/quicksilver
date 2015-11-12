@@ -1,10 +1,8 @@
 (ns quicksilver.routes
   (:gen-class)
-  (:require [nomad :refer [defconfig]]
-            [clojure.java.io :as io]
+  (:require [quicksilver.config :refer [config]]
             [clojure.core.match :refer [match]]))
 
-(defconfig config (io/resource "config/config.edn"))
 (defn debug [] (:debug (config)))
 (defn port [] (:port (config)))
 (defn base-url [] (:base-url (config)))
