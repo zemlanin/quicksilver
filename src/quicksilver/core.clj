@@ -13,6 +13,7 @@
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
             [quicksilver.config :refer [config]]
+            [quicksilver.redis :as redis :refer [wcar*]]
             [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
@@ -81,6 +82,7 @@
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
   (GET websockets/url [] websockets/ws-handler)
+  (GET "/redis" [] (wcar* (redis/ping)))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
