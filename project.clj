@@ -4,7 +4,7 @@
   :license {:name "WTFPL"
             :url "http://www.wtfpl.net/txt/copying"}
   :dependencies [
-    [org.clojure/clojure "1.6.0"]
+    [org.clojure/clojure "1.7.0"]
     [org.clojure/java.jdbc "0.4.1"]
     [org.clojure/data.json "0.2.6"]
     [org.postgresql/postgresql "9.2-1004-jdbc4"]
