@@ -66,9 +66,8 @@
         (GET "/" [] quicksilver.web.auth/handler)
         (POST "/" [] quicksilver.web.auth/post-handler)
         (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
-        (GET [quicksilver.web.auth/token-url, :id #"[0-9]+", :token #"[0-9A-Za-z]+"]
-              [id :<< as-int :as r]
-              (quicksilver.web.auth/token-handler (assoc-in r [:route-params :id] id))))
+        (GET [quicksilver.web.auth/token-url, :token #"[0-9A-Za-z]+"]
+              [] quicksilver.web.auth/token-handler))
       (context quicksilver.web.widgets/url []
         (GET "/"                                [] quicksilver.web.widgets/handler)
         (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
