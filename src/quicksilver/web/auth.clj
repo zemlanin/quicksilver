@@ -5,10 +5,9 @@
             [korma.db :refer [transaction]]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [hiccup.core :refer [html]]
-            [quicksilver.entities :refer [auth-tokens users sessions]]
+            [quicksilver.entities :refer [users sessions]]
             [quicksilver.routes :refer [absolute]]
             [quicksilver.redis :as redis :refer [wcar*]]
-            [crypto.password.scrypt :as password]
             [postal.core :refer [send-message]]
             [ring.util.response :refer [redirect]]))
 
@@ -25,12 +24,6 @@
      (let [chars (map char "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
            password (take n (repeatedly #(rand-nth chars)))]
        (reduce str password))))
-
-(defn add-salt [v]
-  (str v (:auth-salt (config))))
-
-(defn encrypt [v]
-  (password/encrypt (add-salt v)))
 
 (defn get-session-user [session-id]
   (if-not session-id

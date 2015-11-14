@@ -4,7 +4,6 @@
   :port 8080
   :debug true
   :base-url "localhost"
-  :auth-salt "super"
   :redis {:host "127.0.0.1"
           :port 6379
           :db 0}
@@ -22,5 +21,4 @@
                     :pass #nomad/env-var "POSTMARK_TOKEN"
                     :tls true}
             :base-url "bwd.cat"
-            :auth-salt #nomad/env-var "QS_AUTH_SALT"
             :debug false}}}

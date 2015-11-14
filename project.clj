@@ -21,7 +21,6 @@
     [org.clojure/core.async "0.1.346.0-17112a-alpha"]
     [hiccup "1.0.5"]
     [com.draines/postal "1.11.3"]
-    [crypto-password "0.1.3"]
     [prismatic/schema "1.0.1"]
     [com.taoensso/carmine "2.12.0"]
   ]

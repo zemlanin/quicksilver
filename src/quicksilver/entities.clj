@@ -32,12 +32,6 @@
                         (pg-object->str :type :source-data))))
   (entity-fields :id :type :date_created :source_data ))
 
-(defentity auth-tokens
-  (table :auth_tokens)
-  (prepare (fn [v] (rename-keys v {:date-created :date_created})))
-  (transform (fn [v] (rename-keys v {:date_created :date-created})))
-  (entity-fields :id :hash :date_created :email))
-
 (defentity users
   (prepare (fn [v] (rename-keys v {:date-created :date_created})))
   (transform (fn [v] (rename-keys v {:date_created :date-created})))
