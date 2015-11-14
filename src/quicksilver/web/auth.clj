@@ -15,9 +15,6 @@
 (def token-url "/:token")
 (def logout-url "/out")
 
-(defn base-url [] (:base-url (config)))
-(defn email-config [] (:email (config)))
-
 (defn fixed-length-password
   ([] (fixed-length-password 8))
   ([n]
@@ -68,12 +65,11 @@
 (defn post-handler [{{email "email"} :form-params :as request}]
   (if-not (validate-email email)
     (handler (assoc request :form-errors "invalid email"))
-    (let [token (fixed-length-password 30)
-          id (:id (insert-auth-token token email))]
+    (let [token (fixed-length-password 30)]
       (if-let [auth-value (insert-auth-token token email)]
         (do
-          (send-message (email-config)
-            {:from (str "auth@" (base-url))
+          (send-message (config :email)
+            {:from (str "auth@" (config :base-url))
               :to email
               :subject "Auth link for quicksilver"
               :body (absolute (str url token-url) :token token)})
