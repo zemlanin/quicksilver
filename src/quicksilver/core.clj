@@ -9,6 +9,7 @@
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
+            [compojure.route]
             [compojure.coercions :refer [as-int]]
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
@@ -86,6 +87,7 @@
     (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
 (defroutes all-routes
+  (if (config :debug) (compojure.route/resources "/static/") {})
   web-routes
   api-routes)
 
@@ -95,8 +97,10 @@
       ring.middleware.params/wrap-params
       ring.middleware.cookies/wrap-cookies))
 
+(def my-app-reload
+  (-> my-app
+      reload/wrap-reload))
+
 (defn -main [& args]
-  (let [handler (if (:debug (config))
-                  (reload/wrap-reload #'my-app)
-                  my-app)]
-    (run-server handler (select-keys (config) [:port]))))
+  (let [handler (if (config :debug) my-app-reload my-app)]
+    (run-server handler {:port (config :port)})))

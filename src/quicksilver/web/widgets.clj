@@ -50,7 +50,7 @@
                                     (get-field-name field-name k)
                                     (k data))])
                               schema)]]
-    [s] [:div field-name
+    [s] [:div field-name ; TODO: wtf is s?
           [:ul
             [:input {:value (string/join "," (map #(str field-name "_" %) (range (count data))))
                       :name field-name

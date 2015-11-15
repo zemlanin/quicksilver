@@ -40,7 +40,8 @@
         [:input {:type "email", :placeholder "email", :name "email"}]
         [:input {:type "hidden", :name "__anti-forgery-token", :value *anti-forgery-token*}]
         [:input {:type "submit"}]]
-      (when form-errors [:span {:style "color: red"} form-errors]))))
+      (when form-errors [:span {:style "color: red"} form-errors])
+      [:script {:src "/static/js/compiled/quicksilver.js"}])))
 
 (defn insert-auth-token [token email]
   (let [auth-value {:token token :email email}]
