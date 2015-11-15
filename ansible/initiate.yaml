@@ -65,8 +65,22 @@
                 enabled=yes
                 state=started
 
+    - name: install redis
+      yum: name=redis
+
+    - name: configure redis
+      copy: src=./quicksilver-redis.conf dest=/etc/redis.conf
+      notify: reload redis
+
+    - service: name=redis
+                enabled=yes
+                state=started
+
   handlers:
     - name: reload nginx
       service: name=nginx
                 state=reloaded
 
+    - name: reload redis
+      service: name=redis
+                state=reloaded
