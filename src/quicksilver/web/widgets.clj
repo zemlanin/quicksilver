@@ -9,7 +9,7 @@
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [schema.core :as s]
             [quicksilver.entities :refer [widgets]]
-            [quicksilver.widgets :refer [data-schemas]]
+            [quicksilver.api.widgets :refer [data-schemas]]
             [quicksilver.routes :refer [absolute]]
             [quicksilver.web.auth :refer [get-session-user]]))
 

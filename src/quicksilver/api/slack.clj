@@ -1,4 +1,4 @@
-(ns quicksilver.slack
+(ns quicksilver.api.slack
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages slack-tokens old-widgets-map widgets]]
