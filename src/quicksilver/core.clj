@@ -99,7 +99,7 @@
 
 (def my-app-reload
   (-> my-app
-      reload/wrap-reload))
+      (reload/wrap-reload {:dirs ["src" "src-cljc"]})))
 
 (defn -main [& args]
   (let [handler (if (config :debug) my-app-reload my-app)]

@@ -9,6 +9,7 @@
             [quicksilver.routes :refer [absolute]]
             [quicksilver.redis :as redis :refer [wcar*]]
             [postal.core :refer [send-message]]
+            [quicksilver.views.auth :as views]
             [ring.util.response :refer [redirect]]))
 
 (def url "/auth")
@@ -32,15 +33,14 @@
 
 (defn handler [{{{auth :value} "auth"} :cookies form-errors :form-errors :as request}]
   (if-let [user (get-session-user auth)]
-    (html
-      [:div (str "hi, " (:email user))]
-      [:a {:href (absolute (str url logout-url))} "logout"])
-    (html
-      [:form {:action url, :method "POST"}
-        [:input {:type "email", :placeholder "email", :name "email"}]
-        [:input {:type "hidden", :name "__anti-forgery-token", :value *anti-forgery-token*}]
-        [:input {:type "submit"}]]
-      (when form-errors [:span {:style "color: red"} form-errors])
+    ; TODO: replace with redirect to page w/ auth header
+    (html [:div {:id :header}
+            (views/logged-in {:user user
+                              :logout-url (absolute (str url logout-url))})])
+    (html [:div {:id :login-form}
+            (views/login-form { :errors form-errors
+                                :url url
+                                :token *anti-forgery-token*})]
       [:script {:src "/static/js/compiled/quicksilver.js"}])))
 
 (defn insert-auth-token [token email]

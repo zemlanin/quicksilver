@@ -29,20 +29,22 @@
     [lein-cljsbuild "1.1.1"]
     [lein-figwheel "0.5.0-1"]
   ]
+  :source-paths ["src" "src-cljc"]
   :cljsbuild {
     :builds [{:id "dev" 
-              :source-paths ["src-cljs/"]
+              :source-paths ["src-cljs" "src-cljc"]
               :figwheel true
-              :compiler {:main "quicksilver.core"
-                         :asset-path "js/compiled/out"
-                         :output-to "resources/public/js/compiled/quicksilver.js"
-                         :output-dir "resources/public/js/compiled/out"}}
+              :compiler { :main "quicksilver.core"
+                          :output-to "resources/public/js/compiled/quicksilver.js"
+                          :output-dir "resources/public/js/compiled"
+                          :asset-path "/static/js/compiled"}}
              {:id "min"
-              :source-paths ["src-cljs/"]
-              :compiler {:output-to "resources/public/js/compiled/quicksilver.js"
-                         :main "quicksilver.core"
-                         :optimizations :simple
-                         :pretty-print false}}]
+              :source-paths ["src-cljs" "src-cljc"]
+              :compiler { :main "quicksilver.core"
+                          :output-to "resources/public/js/compiled/quicksilver.js"
+                          :asset-path "/static/js/compiled"
+                          :optimizations :advanced
+                          :pretty-print false}}]
   }
   :figwheel {
     ; :http-server-root "public" ;; this will be in resources/
