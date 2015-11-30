@@ -19,9 +19,9 @@
 (defn fixed-length-password
   ([] (fixed-length-password 8))
   ([n]
-     (let [chars (map char "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-           password (take n (repeatedly #(rand-nth chars)))]
-       (reduce str password))))
+   (let [chars (map char "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+          password (take n (repeatedly #(rand-nth chars)))]
+     (reduce str password))))
 
 (defn get-session-user [session-id]
   (if-not session-id
@@ -34,14 +34,20 @@
 (defn handler [{{{auth :value} "auth"} :cookies form-errors :form-errors :as request}]
   (if-let [user (get-session-user auth)]
     ; TODO: replace with redirect to page w/ auth header
-    (html [:div {:id :header}
-            (views/logged-in {:user user
-                              :logout-url (absolute (str url logout-url))})])
-    (html [:div {:id :login-form}
-            (views/login-form { :errors form-errors
-                                :url url
-                                :token *anti-forgery-token*})]
-      [:script {:src "/static/js/compiled/quicksilver.js"}])))
+    (let [init-data {:user user
+                      :logout-url (absolute (str url logout-url))}]
+      (html
+        [:div {:id :header
+                :data-init init-data}
+          (views/logged-in init-data)]))
+    (let [init-data { :errors form-errors
+                      :url url
+                      :token *anti-forgery-token*}]
+      (html
+        [:div {:id :login-form
+                :data-init init-data}
+          (views/login-form init-data)]
+        [:script {:src "/static/js/compiled/quicksilver.js"}]))))
 
 (defn insert-auth-token [token email]
   (let [auth-value {:token token :email email}]
