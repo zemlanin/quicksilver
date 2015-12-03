@@ -30,8 +30,7 @@
             [lein-figwheel "0.5.0-1"]]
 
   :source-paths ["src" "src-cljc"]
-  :cljsbuild {
-              :builds [{:id "dev"
+  :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src-cljs" "src-cljc"]
                         :figwheel true
                         :compiler { :main "quicksilver.core"

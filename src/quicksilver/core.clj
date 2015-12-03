@@ -1,11 +1,12 @@
 (ns quicksilver.core
   (:gen-class)
   (:require [ring.middleware.reload :as reload]
-            [ring.middleware.keyword-params]
             [ring.middleware.params]
             [ring.middleware.cookies]
             [ring.middleware.session]
             [ring.middleware.anti-forgery]
+            [ring.middleware.keyword-params]
+            [ring.util.response]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
@@ -14,7 +15,6 @@
             [clojure.string :as string]
             [clojure.set :refer [rename-keys]]
             [quicksilver.config :refer [config]]
-            [quicksilver.redis :as redis :refer [wcar*]]
             [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.api.slack :as slack]
             [quicksilver.api.widgets :as widgets]
@@ -46,7 +46,8 @@
 
 (defn get-widget-handler [{{widget-id :id} :route-params :as req}]
   (-> (widgets/get-widget widget-id)
-      ((fn [widget] (match widget
+      ((fn [widget]
+        (match widget
           {:type "random-text"} (widgets/random-text widget)
           {:type "static-text"} (widgets/static-text widget)
           {:type "periodic-text"} (widgets/periodic-text widget)
@@ -62,13 +63,13 @@
 (def web-routes
   (wrap-routes
     (routes
-      (GET "/" [] (wrap-json-response "Hello World"))
+      (GET "/" [] (ring.util.response/resource-response "index.html" {:root "public"}))
       (context quicksilver.web.auth/url []
         (GET "/" [] quicksilver.web.auth/handler)
         (POST "/" [] quicksilver.web.auth/post-handler)
         (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
         (GET [quicksilver.web.auth/token-url, :token #"[0-9A-Za-z]+"]
-              [] quicksilver.web.auth/token-handler))
+            [] quicksilver.web.auth/token-handler))
       (context quicksilver.web.widgets/url []
         (GET "/"                                [] quicksilver.web.widgets/handler)
         (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
@@ -82,7 +83,6 @@
     (GET  "/:msg-type" [] get-text-handler)
     (POST "/slack" [] slack/text-handler))
   (GET websockets/url [] websockets/ws-handler)
-  (GET "/redis" [] (wcar* (redis/ping)))
   (context "/widgets" []
     (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
@@ -103,4 +103,5 @@
 
 (defn -main [& args]
   (let [handler (if (config :debug) my-app-reload my-app)]
-    (run-server handler {:port (config :port)})))
+    (run-server handler {:port (config :port)})
+    (when (config :debug) (println "server's running"))))
