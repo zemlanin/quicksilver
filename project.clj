@@ -24,14 +24,15 @@
                  [prismatic/schema "1.0.1"]
                  [prismatic/dommy "1.1.0"]
                  [com.taoensso/carmine "2.12.0"]
-                 [rum "0.5.0"]]
+                 [rum "0.5.0"]
+                 [cljs-ajax "0.5.2"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-figwheel "0.5.0-1"]]
 
-  :source-paths ["src" "src-cljc"]
+  :source-paths ["src" #_"src-cljc"]
   :cljsbuild {:builds [{:id "dev"
-                        :source-paths ["src-cljs" "src-cljc"]
+                        :source-paths ["src-cljs" #_"src-cljc"]
                         :figwheel true
                         :compiler { :main "quicksilver.core"
                                     :output-to "resources/public/js/compiled/quicksilver.js"

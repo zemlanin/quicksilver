@@ -38,6 +38,15 @@
                   :headers {"Content-Type" "application/json; charset=utf-8"
                             "Access-Control-Allow-Origin" "*"}))))
 
+(defn wrap-edn-response [{status :status :as resp}]
+  (-> resp
+      (dissoc :status)
+      str
+      (#(hash-map :body %
+                  :status (or status 200)
+                  :headers {"Content-Type" "application/edn; charset=utf-8"
+                            "Access-Control-Allow-Origin" "*"}))))
+
 (defn add-websockets-endpoint [resp widget-id]
   (if (:error resp)
     resp
@@ -65,8 +74,10 @@
     (routes
       (GET "/" [] (ring.util.response/resource-response "index.html" {:root "public"}))
       (context quicksilver.web.auth/url []
-        (GET "/" [] quicksilver.web.auth/handler)
-        (POST "/" [] quicksilver.web.auth/post-handler)
+        (POST "/" [] (fn [r]
+                        (-> r
+                          quicksilver.web.auth/post-handler
+                          wrap-edn-response)))
         (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
         (GET [quicksilver.web.auth/token-url, :token #"[0-9A-Za-z]+"]
             [] quicksilver.web.auth/token-handler))
@@ -75,7 +86,6 @@
         (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
 
     #(-> %
-          ring.middleware.anti-forgery/wrap-anti-forgery
           ring.middleware.session/wrap-session)))
 
 (defroutes api-routes
@@ -99,7 +109,7 @@
 
 (def my-app-reload
   (-> my-app
-      (reload/wrap-reload {:dirs ["src" "src-cljc"]})))
+      (reload/wrap-reload {:dirs ["src" #_"src-cljc"]})))
 
 (defn -main [& args]
   (let [handler (if (config :debug) my-app-reload my-app)]

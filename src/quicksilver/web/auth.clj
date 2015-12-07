@@ -9,7 +9,6 @@
             [quicksilver.routes :refer [absolute]]
             [quicksilver.redis :as redis :refer [wcar*]]
             [postal.core :refer [send-message]]
-            [quicksilver.views.auth :as views]
             [ring.util.response :refer [redirect]]))
 
 (def url "/auth")
@@ -31,24 +30,6 @@
           (where {:id session-id}))
         (first))))
 
-(defn handler [{{{auth :value} "auth"} :cookies form-errors :form-errors :as request}]
-  (if-let [user (get-session-user auth)]
-    ; TODO: replace with redirect to page w/ auth header
-    (let [init-data {:user user
-                      :logout-url (absolute (str url logout-url))}]
-      (html
-        [:div {:id :header
-                :data-init init-data}
-          (views/logged-in init-data)]))
-    (let [init-data { :errors form-errors
-                      :url url
-                      :token *anti-forgery-token*}]
-      (html
-        [:div {:id :login-form
-                :data-init init-data}
-          (views/login-form init-data)]
-        [:script {:src "/static/js/compiled/quicksilver.js"}]))))
-
 (defn insert-auth-token [token email]
   (let [auth-value {:token token :email email}]
     (when (= "OK" (wcar* (redis/setex (redis/key :auth-tokens token) 600 auth-value)))
@@ -69,20 +50,21 @@
 (defn validate-email [email]
   (some? (re-matches #"[^@\s]+@[^@\s\.]+\.[^@\s]+" email)))
 
-(defn post-handler [{{email "email"} :form-params :as request}]
-  (if-not (validate-email email)
-    (handler (assoc request :form-errors "invalid email"))
-    (let [token (fixed-length-password 30)]
-      (if-let [auth-value (insert-auth-token token email)]
-        (do
-          (send-message (config :email)
-            {:from (str "auth@" (config :base-url))
-              :to email
-              :subject "Auth link for quicksilver"
-              :body (absolute (str url token-url) :token token)})
-          (html
-            [:div "auth link is sent to email (expires in 10 minutes)"]))
-        (handler (assoc request :form-errors "something wrong"))))))
+(defn post-handler [{{email "email"} :form-params session :session :as request}]
+  (if (empty? session)
+    {:status 401 :session "unknown session"}
+    (if-not (validate-email email)
+      {:status 400 :email "invalid email"}
+      (let [token (fixed-length-password 30)]
+        (if-let [auth-value (insert-auth-token token email)]
+          (do
+            (send-message (config :email)
+              {:from (str "auth@" (config :base-url))
+                :to email
+                :subject "Auth link for quicksilver"
+                :body (absolute (str url token-url) :token token)})
+            {:message "auth link is sent to email (expires in 10 minutes)"})
+          {:status 500})))))
 
 (defn insert-session [user-id session-id]
   (insert sessions
