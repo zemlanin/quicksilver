@@ -17,10 +17,10 @@
                   line='DB_PASSWORD="{{db_password}}"'
                   state=present
 
-    - name: check ENV QS_AUTH_SALT
+    - name: check ENV SESSION_SECRET
       lineinfile: dest=/etc/sysconfig/quicksilver
-                  regexp='^QS_AUTH_SALT='
-                  line='QS_AUTH_SALT="{{qs_auth_salt}}"'
+                  regexp='^SESSION_SECRET='
+                  line='SESSION_SECRET="{{session_secret}}"'
                   state=present
 
     - name: check ENV POSTMARK_TOKEN

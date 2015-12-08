@@ -8,6 +8,7 @@
           :port 6379
           :db 0}
   :email {:port 587}
+  :session-secret "super ses secret"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -21,4 +22,5 @@
                     :pass #nomad/env-var "POSTMARK_TOKEN"
                     :tls true}
             :base-url "bwd.cat"
+            :session-secret #nomad/env-var "SESSION_SECRET"
             :debug false}}}

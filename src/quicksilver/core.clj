@@ -4,8 +4,10 @@
             [ring.middleware.params]
             [ring.middleware.cookies]
             [ring.middleware.session]
+            [ring.middleware.session.cookie]
             [ring.middleware.anti-forgery]
             [ring.middleware.keyword-params]
+            [ring.middleware.format]
             [ring.util.response]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
@@ -38,15 +40,6 @@
                   :headers {"Content-Type" "application/json; charset=utf-8"
                             "Access-Control-Allow-Origin" "*"}))))
 
-(defn wrap-edn-response [{status :status :as resp}]
-  (-> resp
-      (dissoc :status)
-      str
-      (#(hash-map :body %
-                  :status (or status 200)
-                  :headers {"Content-Type" "application/edn; charset=utf-8"
-                            "Access-Control-Allow-Origin" "*"}))))
-
 (defn add-websockets-endpoint [resp widget-id]
   (if (:error resp)
     resp
@@ -69,32 +62,70 @@
   (get-widget-handler (assoc-in req [:route-params :id]
                         (get old-widgets-map msg-type -1))))
 
+(defn wrap-visited-site [handler]
+  (fn [request]
+    (let [response (handler request)
+          new-session (if (:session response)
+                        (assoc (:session response) :visited true)
+                        (assoc (:session request) :visited true))]
+
+      (assoc response :session new-session))))
+
+
+(def index-response (ring.util.response/resource-response "index.html" {:root "public"}))
+
+(defonce session-store
+  (ring.middleware.session.cookie/cookie-store {:key (config :session-secret)}))
+
+(defn wrap-session-user [handler]
+  (fn [request]
+    (let [session (-> request :session)
+          auth-id (-> session :auth-id)
+          user (quicksilver.web.auth/get-session-user auth-id)
+          extended-session (if user
+                            (assoc session :user user)
+                            session)
+          response (handler (assoc request :session extended-session))
+
+          shrunk-session (when (:session response)
+                            (dissoc (:session response) :user))]
+
+      (if shrunk-session
+        (assoc response :session shrunk-session)
+        response))))
+
+
 (def web-routes
   (wrap-routes
     (routes
-      (GET "/" [] (ring.util.response/resource-response "index.html" {:root "public"}))
-      (context quicksilver.web.auth/url []
-        (POST "/" [] (fn [r]
-                        (-> r
-                          quicksilver.web.auth/post-handler
-                          wrap-edn-response)))
-        (GET quicksilver.web.auth/logout-url [] quicksilver.web.auth/logout)
-        (GET [quicksilver.web.auth/token-url, :token #"[0-9A-Za-z]+"]
-            [] quicksilver.web.auth/token-handler))
-      (context quicksilver.web.widgets/url []
-        (GET "/"                                [] quicksilver.web.widgets/handler)
-        (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
+      (GET "/" [] index-response)
+      (GET ["/auth/:token" :token #"[0-9A-Za-z]+"] [] index-response))
+      ; (context quicksilver.web.widgets/url []
+      ;   (GET "/"                                [] quicksilver.web.widgets/handler)
+      ;   (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
 
     #(-> %
-          ring.middleware.session/wrap-session)))
+        wrap-visited-site)))
 
 (defroutes api-routes
-  (context "/text" []
-    (GET  "/:msg-type" [] get-text-handler)
-    (POST "/slack" [] slack/text-handler))
-  (GET websockets/url [] websockets/ws-handler)
-  (context "/widgets" []
-    (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
+  (wrap-routes
+    (routes
+      (context "/api" []
+        (GET "/whoami" [] quicksilver.web.auth/whoami)
+        (context "/auth" []
+          (POST "/" [] quicksilver.web.auth/post-handler)
+          (DELETE "/" [] quicksilver.web.auth/logout)
+          (POST ["/:token" :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler)))
+
+      (context "/text" []
+        (GET  "/:msg-type" [] get-text-handler)
+        (POST "/slack" [] slack/text-handler))
+      (GET websockets/url [] websockets/ws-handler)
+      (context "/widgets" []
+        (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
+
+    #(-> %
+        ring.middleware.format/wrap-restful-format)))
 
 (defroutes all-routes
   (if (config :debug) (compojure.route/resources "/static/") {})
@@ -103,6 +134,10 @@
 
 (def my-app
   (-> all-routes
+      wrap-session-user
+      (ring.middleware.session/wrap-session
+        {:store session-store
+          :cookie-attrs {:max-age (* 30 24 3600)}})
       ring.middleware.keyword-params/wrap-keyword-params
       ring.middleware.params/wrap-params
       ring.middleware.cookies/wrap-cookies))

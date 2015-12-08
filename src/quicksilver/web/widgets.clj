@@ -16,11 +16,11 @@
 (def url "/control/widgets")
 (def widget-url "/:id")
 
-(defn get-user-widgets 
+(defn get-user-widgets
   ([user-id] (select widgets (where {:user_id user-id})))
   ([user-id widget-id] (-> (select widgets
                               (where {:user_id user-id, :id widget-id}))
-                            (first))))
+                           (first))))
 
 (defn handler [{{{auth :value} "auth"} :cookies :as request}]
   (if-let [user (get-session-user auth)]
@@ -47,8 +47,8 @@
                             (map
                               (fn [[k s]]
                                 [:li (get-data-field s
-                                    (get-field-name field-name k)
-                                    (k data))])
+                                      (get-field-name field-name k)
+                                      (k data))])
                               schema)]]
     [s] [:div field-name ; TODO: wtf is s?
           [:ul
@@ -71,7 +71,7 @@
     (let [w (get-user-widgets (:id_2 user) (read-string widget-id))
           widget-type (:type w)
           source-data (json/read-str (:source-data w)
-                                      :key-fn ->kebab-case-keyword)
+                                     :key-fn ->kebab-case-keyword)
           source-scheme ((keyword widget-type) data-schemas)]
       (html
         [:p (:id w) " / " widget-type]

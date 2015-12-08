@@ -8,8 +8,7 @@
             [quicksilver.entities :refer [users sessions]]
             [quicksilver.routes :refer [absolute]]
             [quicksilver.redis :as redis :refer [wcar*]]
-            [postal.core :refer [send-message]]
-            [ring.util.response :refer [redirect]]))
+            [postal.core :refer [send-message]]))
 
 (def url "/auth")
 (def token-url "/:token")
@@ -23,12 +22,12 @@
      (reduce str password))))
 
 (defn get-session-user [session-id]
-  (if-not session-id
-    nil
+  (when session-id
     (-> (select sessions
           (with users)
           (where {:id session-id}))
-        (first))))
+        (first)
+        (dissoc :date-created))))
 
 (defn insert-auth-token [token email]
   (let [auth-value {:token token :email email}]
@@ -50,11 +49,14 @@
 (defn validate-email [email]
   (some? (re-matches #"[^@\s]+@[^@\s\.]+\.[^@\s]+" email)))
 
-(defn post-handler [{{email "email"} :form-params session :session :as request}]
-  (if (empty? session)
-    {:status 401 :session "unknown session"}
-    (if-not (validate-email email)
-      {:status 400 :email "invalid email"}
+(defn whoami [{{user :user} :session :as request}]
+  {:body user})
+
+(defn post-handler [{{email :email} :body-params session :session :as request}]
+  (if-not (:visited session)
+    {:status 401 :body {:message "unknown session"}}
+    (if-not (and email (validate-email email))
+      {:status 400 :body {:email "invalid email"}}
       (let [token (fixed-length-password 30)]
         (if-let [auth-value (insert-auth-token token email)]
           (do
@@ -63,7 +65,7 @@
                 :to email
                 :subject "Auth link for quicksilver"
                 :body (absolute (str url token-url) :token token)})
-            {:message "auth link is sent to email (expires in 10 minutes)"})
+            {:body {:message "auth link is sent to email (expires in 10 minutes)"}})
           {:status 500})))))
 
 (defn insert-session [user-id session-id]
@@ -76,23 +78,17 @@
     (insert users
       (values {:email email}))))
 
-(defn token-handler [{{token :token} :route-params :as request}]
+(defn token-handler [{{token :token} :route-params session :session :as request}]
   (if-let [auth-token (get-auth-token token)]
     (let [user (get-or-create-user (:email auth-token))
-          session-id (fixed-length-password 30)]
+          auth-id (fixed-length-password 30)]
       (delete-auth-token token)
-      (insert-session (:id user) session-id)
+      (insert-session (:id user) auth-id)
       {:body "you're in"
-        :cookies {"auth" {:value session-id
-                          :http-only true
-                          :max-age (* 14 24 60 60)
-                          :path "/"}}})
-    (redirect (absolute url))))
+        :session (assoc session :auth-id auth-id)})
+    {:body "hmm"}))
 
-(defn logout [{{{auth :value} "auth"} :cookies :as request}]
-  (delete sessions (where {:id auth}))
+(defn logout [{session :session :as request}]
+  (delete sessions (where {:id (:auth-id session)}))
   {:body "logged out"
-    :cookies {"auth" {:value ""
-                      :http-only true
-                      :max-age 0
-                      :path "/"}}})
+    :session (dissoc session :auth-id)})
