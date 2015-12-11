@@ -26,7 +26,8 @@
                  [prismatic/dommy "1.1.0"]
                  [com.taoensso/carmine "2.12.0"]
                  [rum "0.5.0"]
-                 [cljs-ajax "0.5.2"]]
+                 [cljs-ajax "0.5.2"]
+                 [datascript "0.13.3"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-figwheel "0.5.0-1"]]
