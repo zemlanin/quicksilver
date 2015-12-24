@@ -18,8 +18,8 @@
 (defn auth-login [email handler error-handler]
   (POST "/api/auth" {:params {:email email}
                       :response-format (edn-response-format)
-                      :handler handler ;#(swap! state assoc-in [:login-form :message] (:message %))
-                      :error-handler error-handler})) ;#(swap! state assoc-in [:login-form :errors] (-> % :response :errors))}))
+                      :handler handler
+                      :error-handler error-handler}))
 
 (defn auth-logout [handler]
   (DELETE "/api/auth" {:response-format (edn-response-format)

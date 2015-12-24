@@ -1,12 +1,7 @@
 (ns ^:figwheel-always quicksilver.ui
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [rum.core :as rum]
             [datascript.core :as d]
-            [ajax.core :refer [GET POST DELETE]]
-            [ajax.edn :refer [edn-response-format]]
-            [quicksilver.bus :as bus :refer [get-sub-chan]]
-            [cljs.core.async :as async]
-            [cljs.reader :refer [read-string]]
+            [quicksilver.bus :as bus]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
 (defn logged-in [{email :email :as props}]
@@ -62,3 +57,8 @@
           (d/q '[:find ?e
                   :where [?e _ _]]
               db))]]))
+
+(defn mount [conn]
+  (rum/mount
+    (app-component conn)
+    (sel1 :#app)))

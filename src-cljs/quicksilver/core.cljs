@@ -1,20 +1,16 @@
 (ns ^:figwheel-always quicksilver.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [rum.core :as rum]
-            [datascript.core :as d]
+  (:require [datascript.core :as d]
             [quicksilver.ui :as ui]
             [quicksilver.server :as server]
             [cljs.core.async :as async]
-            [quicksilver.bus :as bus :refer [get-sub-chan]]
-            [dommy.core :as dommy :refer-macros [sel sel1]]))
+            [quicksilver.bus :as bus :refer [get-sub-chan]]))
 
 (enable-console-print!)
 
 (defonce conn (d/create-conn))
 
-(rum/mount
-  (ui/app-component conn)
-  (sel1 :#app))
+(ui/mount conn)
 
 (defn load-user [& _]
   (server/whoami
