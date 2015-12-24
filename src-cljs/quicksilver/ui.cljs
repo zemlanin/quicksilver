@@ -47,13 +47,15 @@
 
 (rum/defc app-component < rum/reactive [conn]
   (let [db (rum/react conn)
-        user (d/q '[:find ?e .
-                    :where [?e :user/me true]]
-                db)]
+        user-ref (d/q '[:find ?e .
+                        :where [?e :user/me true]]
+                    db)
+        user (d/entity db user-ref)]
     [:div {}
-      (if user
-        (logged-in (d/entity db user))
-        (get-form login-form conn :login))
+      (when user
+        (if (:email user)
+          (logged-in user)
+          (get-form login-form conn :login)))
       [:hr]
       [:ul {}
         (map #(vector :li {} (str (d/touch (d/entity db (first %)))))

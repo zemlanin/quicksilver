@@ -41,7 +41,7 @@
                                     :output-dir "resources/public/js/compiled"
                                     :asset-path "/static/js/compiled"}}
                        {:id "min"
-                        :source-paths ["src-cljs" "src-cljc"]
+                        :source-paths ["src-cljs" #_"src-cljc"]
                         :compiler { :main "quicksilver.core"
                                     :output-to "resources/public/js/compiled/quicksilver.js"
                                     :asset-path "/static/js/compiled"

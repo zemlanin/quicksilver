@@ -19,9 +19,7 @@
 (defn load-user [& _]
   (server/whoami
     (fn [user]
-      (when user
-        (d/transact! conn [(assoc user
-                            :user/me true)])))))
+      (d/transact! conn [(assoc user :user/me true)]))))
 
 (defn initiate-state []
   (if-let [token (get (re-matches #"/auth/([0-9A-Za-z]+)" (.. js/document -location -pathname)) 1)]
