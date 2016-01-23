@@ -22,14 +22,19 @@
                               (where {:user_id user-id, :id widget-id}))
                            (first))))
 
-(defn handler [{{{auth :value} "auth"} :cookies :as request}]
-  (if-let [user (get-session-user auth)]
-    (html
-      [:ul (map (fn [{id :id, type :type, source-data :source-data}]
-                    [:a {:href (absolute (str url widget-url) :id id)}
-                      [:li id " / " type " / " source-data]])
-            (get-user-widgets (:id_2 user)))])
-    (redirect (absolute quicksilver.web.auth/url))))
+; (defn handler [{{{auth :value} "auth"} :cookies :as request}]
+;   (if-let [user (get-session-user auth)]
+;     (html
+;       [:ul (map (fn [{id :id, type :type, source-data :source-data}]
+;                     [:a {:href (absolute (str url widget-url) :id id)}
+;                       [:li id " / " type " / " source-data]])
+;             (get-user-widgets (:id_2 user)))])
+;     (redirect (absolute quicksilver.web.auth/url))))
+
+(defn handler [{{user :user} :session :as request}]
+  (if user
+    {:body (get-user-widgets (:id_2 user))}
+    {:status 403}))
 
 (defn hashmap? [v]
   (instance? clojure.lang.PersistentArrayMap v))

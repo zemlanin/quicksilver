@@ -25,3 +25,8 @@
   (DELETE "/api/auth" {:response-format (edn-response-format)
                         :handler handler
                         :error-handler println}))
+
+(defn widgets [handler]
+  (GET "/api/widgets" {:response-format (edn-response-format)
+                        :handler handler
+                        :error-handler println}))

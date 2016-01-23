@@ -17,6 +17,12 @@
     (fn [user]
       (d/transact! conn [(assoc user :user/me true)]))))
 
+(defn load-widgets [& _]
+  (server/widgets
+    (fn [widgets]
+      (println widgets))))
+      ; (d/transact! conn [(assoc user :user/me true)]))))
+
 (defn initiate-state []
   (if-let [token (get (re-matches #"/auth/([0-9A-Za-z]+)" (.. js/document -location -pathname)) 1)]
     (do
@@ -34,7 +40,8 @@
       (server/auth-login email
         (fn [{message :message}]
           (d/transact! conn [[:db/add form
-                              :message message]]))
+                              :message message
+                              :errors nil]]))
         (fn [{error :response}]
           (d/transact! conn [[:db/add form
                               :errors error]]))))
@@ -55,6 +62,13 @@
                   @conn)]
       (go (server/auth-logout println))
       (d/transact! conn [[:db.fn/retractEntity user]]))
+    (recur))
+  (go-loop []
+    (let [[_ msg] (async/<! (get-sub-chan :load/widgets))
+          user (d/q '[:find ?e .
+                      :where [?e :user/me true]]
+                  @conn)]
+      (go (load-widgets)))
     (recur)))
 
 

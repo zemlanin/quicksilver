@@ -3,11 +3,9 @@
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages widgets]]
             [clj-time.core :as t]
-            [clj-time.coerce :as time-coerce]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]
-            [schema.core :as s]
-            ))
+            [schema.core :as s]))
 
 (defn get-widget [widget-id]
   (-> (select widgets
@@ -49,7 +47,7 @@
   returns moment in which, we assume, period have started
   `value-index` is used to shift start in a case if user have set a specific value by hand
 
-  TODO: edge case of (* expires period-length) > epoch  
+  TODO: edge case of (* expires period-length) > epoch
   "
   (t/minus (or date-created (t/epoch)) (t/seconds (* value-index period-length))))
 
@@ -65,11 +63,7 @@
         (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))
         (#(hash-map :text %)))))
 
-(def data-schemas {
-  :random-text {
-    :values [{:text s/Str
-              :chance s/Int}]}
-  :periodic-text {
-    :values [s/Str]
-    :switches-every s/Int}
-  })
+(def data-schemas {:random-text {:values [{:text s/Str
+                                           :chance s/Int}]}
+                   :periodic-text {:values [s/Str]
+                                   :switches-every s/Int}})

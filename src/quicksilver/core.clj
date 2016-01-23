@@ -8,6 +8,7 @@
             [ring.middleware.anti-forgery]
             [ring.middleware.keyword-params]
             [ring.middleware.format]
+            [ring.middleware.format-response]
             [ring.util.response]
             [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
@@ -32,6 +33,11 @@
             [org.httpkit.server :refer [run-server]]))
 
 (defdb db (postgres (:postgres (config))))
+
+(extend-protocol cheshire.generate/JSONable
+  org.joda.time.DateTime
+  (to-json [t jg]
+    (cheshire.generate/write-string jg (str t))))
 
 (defn wrap-json-response [resp]
   (-> resp
@@ -71,7 +77,6 @@
 
       (assoc response :session new-session))))
 
-
 (def index-response (ring.util.response/resource-response "index.html" {:root "public"}))
 
 (defonce session-store
@@ -107,6 +112,18 @@
     #(-> %
         wrap-visited-site)))
 
+(defn wrap-joda-time [handler]
+  (fn [request]
+    (->> request
+        handler
+        (clojure.walk/prewalk
+          #(if (instance? org.joda.time.DateTime %) (.toDate %) %)))))
+
+(defn wrap-restful-format [handler]
+  (ring.middleware.format/wrap-restful-format handler
+    :formats [:json :edn]
+    :response-options {:json {:key-fn ->camelCaseString}}))
+
 (defroutes api-routes
   (wrap-routes
     (routes
@@ -115,7 +132,10 @@
         (context "/auth" []
           (POST "/" [] quicksilver.web.auth/post-handler)
           (DELETE "/" [] quicksilver.web.auth/logout)
-          (POST ["/:token" :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler)))
+          (POST ["/:token" :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
+        (context "/widgets" []
+          (GET "/" [] quicksilver.web.widgets/handler)
+          (GET ["/:id" :id #"[0-9]+"] [] quicksilver.web.widgets/widget-handler)))
 
       (context "/text" []
         (GET  "/:msg-type" [] get-text-handler)
@@ -125,7 +145,8 @@
         (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
     #(-> %
-        ring.middleware.format/wrap-restful-format)))
+        (wrap-joda-time)
+        (wrap-restful-format))))
 
 (defroutes all-routes
   (if (config :debug) (compojure.route/resources "/static/") {})
