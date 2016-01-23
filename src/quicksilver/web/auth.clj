@@ -10,10 +10,6 @@
             [quicksilver.redis :as redis :refer [wcar*]]
             [postal.core :refer [send-message]]))
 
-(def url "/auth")
-(def token-url "/:token")
-(def logout-url "/out")
-
 (defn fixed-length-password
   ([] (fixed-length-password 8))
   ([n]
@@ -64,7 +60,7 @@
               {:from (str "auth@" (config :base-url))
                 :to email
                 :subject "Auth link for quicksilver"
-                :body (absolute (str url token-url) :token token)})
+                :body (absolute "/auth/:token" :token token)})
             {:body {:message "auth link is sent to email (expires in 10 minutes)"}})
           {:status 500})))))
 

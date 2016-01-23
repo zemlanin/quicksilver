@@ -10,13 +10,11 @@
             [ring.middleware.format]
             [ring.middleware.format-response]
             [ring.util.response]
-            [korma.core :refer [select where limit order]]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
             [compojure.route]
             [compojure.coercions :refer [as-int]]
             [clojure.string :as string]
-            [clojure.set :refer [rename-keys]]
             [quicksilver.config :refer [config]]
             [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.api.slack :as slack]
@@ -105,9 +103,6 @@
     (routes
       (GET "/" [] index-response)
       (GET ["/auth/:token" :token #"[0-9A-Za-z]+"] [] index-response))
-      ; (context quicksilver.web.widgets/url []
-      ;   (GET "/"                                [] quicksilver.web.widgets/handler)
-      ;   (GET quicksilver.web.widgets/widget-url [] quicksilver.web.widgets/widget-handler)))
 
     #(-> %
         wrap-visited-site)))
