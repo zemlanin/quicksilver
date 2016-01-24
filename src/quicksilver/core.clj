@@ -5,7 +5,6 @@
             [ring.middleware.cookies]
             [ring.middleware.session]
             [ring.middleware.session.cookie]
-            [ring.middleware.anti-forgery]
             [ring.middleware.keyword-params]
             [ring.middleware.format]
             [ring.middleware.format-response]

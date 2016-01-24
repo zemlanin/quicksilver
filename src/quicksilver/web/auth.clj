@@ -3,7 +3,6 @@
   (:require [quicksilver.config :refer [config]]
             [korma.core :refer [select delete where limit insert values join with]]
             [korma.db :refer [transaction]]
-            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [hiccup.core :refer [html]]
             [quicksilver.entities :refer [users sessions]]
             [quicksilver.routes :refer [absolute]]

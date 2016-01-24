@@ -12,7 +12,6 @@
                  [http-kit "2.1.19"]
                  [compojure "1.4.0"]
                  [ring "1.4.0"]
-                 [ring/ring-anti-forgery "1.0.0"]
                  [ring-middleware-format "0.7.0"]
                  [jarohen/nomad "0.7.2"]
                  [org.clojure/core.match "0.3.0-alpha4"]
