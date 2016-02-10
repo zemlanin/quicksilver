@@ -8,7 +8,6 @@
             [ring.middleware.keyword-params]
             [ring.middleware.format]
             [ring.middleware.format-response]
-            [ring.util.response]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
             [compojure.route]
@@ -74,8 +73,6 @@
 
       (assoc response :session new-session))))
 
-(def index-response (ring.util.response/resource-response "index.html" {:root "public"}))
-
 (defonce session-store
   (ring.middleware.session.cookie/cookie-store {:key (config :session-secret)}))
 
@@ -96,16 +93,6 @@
         (assoc response :session shrunk-session)
         response))))
 
-
-(def web-routes
-  (wrap-routes
-    (routes
-      (GET "/" [] index-response)
-      (GET ["/auth/:token" :token #"[0-9A-Za-z]+"] [] index-response))
-
-    #(-> %
-        wrap-visited-site)))
-
 (defn wrap-joda-time [handler]
   (fn [request]
     (->> request
@@ -115,7 +102,7 @@
 
 (defn wrap-restful-format [handler]
   (ring.middleware.format/wrap-restful-format handler
-    :formats [:json :edn]
+    :formats [:json]
     :response-options {:json {:key-fn ->camelCaseString}}))
 
 (defroutes api-routes
@@ -142,13 +129,8 @@
         (wrap-joda-time)
         (wrap-restful-format))))
 
-(defroutes all-routes
-  (if (config :debug) (compojure.route/resources "/static/") {})
-  web-routes
-  api-routes)
-
 (def my-app
-  (-> all-routes
+  (-> api-routes
       wrap-session-user
       (ring.middleware.session/wrap-session
         {:store session-store
@@ -159,7 +141,7 @@
 
 (def my-app-reload
   (-> my-app
-      (reload/wrap-reload {:dirs ["src" #_"src-cljc"]})))
+      (reload/wrap-reload {:dirs ["src"]})))
 
 (defn -main [& args]
   (let [handler (if (config :debug) my-app-reload my-app)]
