@@ -21,7 +21,7 @@
 
 (defn insert-auto-message [text widget]
   (-> (insert messages
-        (values {:text text, :widget-id (:id widget)}))))
+        (values {:text text, :widget_id (:id widget)}))))
 
 (defn repeat-hash-map->seq [repeat-hash-map]
   "(repeat-hash-map->seq {:a 5 :b 7}) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
@@ -29,8 +29,8 @@
 
 (defn random-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (json/read-str (:source-data widget))]
-      (if (and widget-message (t/after? (:date-created widget-message) (t/today-at-midnight)))
+        source-data (json/read-str (:source_data widget))]
+      (if (and widget-message (t/after? (:date_created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
         (-> (get source-data "values")
             (repeat-hash-map->seq)
@@ -53,11 +53,11 @@
 
 (defn periodic-text [widget]
   (let [widget-message (get-widget-message widget)
-        source-data (json/read-str (:source-data widget) :key-fn ->kebab-case-keyword)
+        source-data (json/read-str (:source_data widget) :key-fn ->kebab-case-keyword)
         periodic-values (:values source-data)
         period-length (:switches-every source-data)
         value-index (max 0 (.indexOf periodic-values (:text widget-message)))
-        base-timestamp (get-base-timestamp (:date-created widget-message) value-index period-length)
+        base-timestamp (get-base-timestamp (:date_created widget-message) value-index period-length)
         time-delta (t/in-seconds (t/interval base-timestamp (t/now)))]
     (-> periodic-values
         (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))

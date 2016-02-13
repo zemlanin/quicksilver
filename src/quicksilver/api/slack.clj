@@ -51,7 +51,7 @@
         [_ _ false _] "no access (unknown user)"
         :else (-> ; TODO: check values for periodic-text
                   (insert messages
-                    (values {:author author, :widget-id widget-id, :text text, :type msg-type}))
+                    (values {:author author, :widget_id widget-id, :text text, :type msg-type}))
                   (:text)
                   (#(do
                     (put! websockets/pings {:subj :update-widget :widget-id widget-id})
