@@ -1,3 +1,3 @@
 # quicksilver
 
-Notifications server for [blackwidow](https://github.com/zemlanin/blackwidow)
+Notifications and widgets server for [blackwidow](https://github.com/zemlanin/blackwidow)
