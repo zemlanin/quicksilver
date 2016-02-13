@@ -12,13 +12,6 @@
 (defn pg-object->str [v & ks]
   (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks))
 
-(def old-widgets-map {"duty" 1
-                      "default" 2
-                      "quote" 3
-                      "uno" 4
-                      "gif" 5
-                      "ready" 6})
-
 (defentity widgets
   (transform (fn [v] (-> v
                         (pg-object->str :type :source_data))))

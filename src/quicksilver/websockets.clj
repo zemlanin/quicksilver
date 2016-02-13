@@ -7,13 +7,13 @@
 
 (def url "/ws/:subj")
 
-(def pings (chan))
-(def sub-pings (pub pings :subj))
+(def push-chan (chan))
+(def push-sub (pub push-chan :subj))
 
 (defn process [{route-params :route-params :as req}]
   (when-let [subj (:subj route-params)]
     (let [ch (chan)]
-      (sub sub-pings (keyword subj) ch)
+      (sub push-sub (keyword subj) ch)
       ch)))
 
 (defn ws-handler [request]

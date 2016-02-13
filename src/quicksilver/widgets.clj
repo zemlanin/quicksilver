@@ -9,7 +9,14 @@
 
 (defn get-widget [widget-id]
   (-> (select widgets
-        (where {:id widget-id}))
+        (where {:id widget-id})
+        (limit 1))
+      (first)))
+
+(defn get-widget-by-title [title]
+  (-> (select widgets
+        (where {:title title})
+        (limit 1))
       (first)))
 
 (defn get-widget-message [widget]

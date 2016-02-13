@@ -9,7 +9,6 @@
             [compojure.coercions :refer [as-int]]
             [clojure.string :as string]
             [quicksilver.config :refer [config]]
-            [quicksilver.entities :refer [old-widgets-map]]
             [quicksilver.slack :as slack]
             [quicksilver.widgets :as widgets]
             [quicksilver.websockets :as websockets]
@@ -44,24 +43,24 @@
     nil {:error "not found"}
     :else {:error "unknown widget type"}))
 
-(defn get-widget-handler [{{widget-id :id} :route-params :as req}]
-  (let [widget-id (as-int widget-id)]
-    (-> (widgets/get-widget widget-id)
+(defn get-widget-handler [{{widget-id :id, title :title} :route-params :as req}]
+  (let [widget (if widget-id
+                  (widgets/get-widget (as-int widget-id))
+                  (widgets/get-widget-by-title title))]
+    (-> widget
         (match-widget-type)
-        (add-websockets-endpoint widget-id)
+        (add-websockets-endpoint (:id widget))
         wrap-json-response)))
 
-(defn get-text-handler [{{msg-type :msg-type} :route-params :as req}]
-  (get-widget-handler (assoc-in req [:route-params :id]
-                        (str (get old-widgets-map msg-type -1)))))
-
 (defroutes api-routes
-  (context "/text" []
-    (GET  "/:msg-type" [] get-text-handler)
-    (POST "/slack" [] slack/text-handler))
-  (GET websockets/url [] websockets/ws-handler)
   (context "/widgets" []
-    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)))
+    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
+    (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
+  (context "/text" []
+    (POST "/slack" [] slack/text-handler))
+  (context "/slack" []
+    (POST "/text" [] slack/text-handler))
+  (GET websockets/url [] websockets/ws-handler))
 
 (def my-app
   (-> api-routes

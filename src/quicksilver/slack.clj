@@ -1,10 +1,11 @@
 (ns quicksilver.slack
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
-            [quicksilver.entities :refer [messages slack-tokens old-widgets-map widgets]]
+            [quicksilver.entities :refer [messages slack-tokens widgets]]
             [quicksilver.websockets :as websockets]
             [clojure.core.async :as async :refer [put!]]
-            [clojure.core.match :refer [match]]))
+            [clojure.core.match :refer [match]]
+            [quicksilver.config :refer [config]]))
 
 (defn get-msg [widget-id]
   (-> (select messages
@@ -16,15 +17,23 @@
 
 (defn get-widget [widget-id]
   (-> (select widgets
-        (where {:id widget-id}))
+        (where {:id widget-id})
+        (limit 1))
+      (first)))
+
+(defn get-widget-by-title [title]
+  (-> (select widgets
+        (where {:title title})
+        (limit 1))
       (first)))
 
 (defn check-token [token]
-  (-> (select slack-tokens
-        (where {:token token})
-        (limit 1))
-      (empty?)
-      (not)))
+  (or (and (not token) (config :debug))
+    (-> (select slack-tokens
+          (where {:token token})
+          (limit 1))
+        (empty?)
+        (not))))
 
 (def authors #{"a.verinov"
                "a.kuzmenko"
@@ -40,7 +49,8 @@
                               [] ["" ""]
                               [msg-type] [msg-type ""]
                               [msg-type & split-text] [msg-type (clojure.string/join " " split-text)]))
-        widget-id (get old-widgets-map msg-type)]
+        widget (get-widget-by-title msg-type)
+        widget-id (:id widget)]
 
       (match [widget-id text (contains? authors author) (check-token token)]
         [nil _ _ _] "no access (unknown widget type)"
@@ -52,5 +62,5 @@
                     (values {:author author, :widget_id widget-id, :text text, :type msg-type}))
                   (:text)
                   (#(do
-                     (put! websockets/pings {:subj :update-widget :widget-id widget-id})
+                     (put! websockets/push-chan {:subj :update-widget :widget-id widget-id})
                      (str "+" msg-type ": " %)))))))
