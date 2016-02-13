@@ -4,9 +4,6 @@
   :port 8080
   :debug true
   :base-url "localhost"
-  :redis {:host "127.0.0.1"
-          :port 6379
-          :db 0}
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"

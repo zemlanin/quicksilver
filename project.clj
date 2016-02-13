@@ -17,8 +17,7 @@
                  [clj-time "0.11.0"]
                  [camel-snake-kebab "0.3.2"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [prismatic/schema "1.0.1"]
-                 [com.taoensso/carmine "2.12.0"]]
+                 [prismatic/schema "1.0.1"]]
 
   :source-paths ["src"]
 
