@@ -1,4 +1,4 @@
-(ns quicksilver.api.slack
+(ns quicksilver.slack
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages slack-tokens old-widgets-map widgets]]
@@ -26,14 +26,12 @@
       (empty?)
       (not)))
 
-(def authors #{
-  "a.verinov"
-  "a.kuzmenko"
-  "r.mamedov"
-  "s.taran"
-  "i.dazhuk"
-  "i.mozharovsky"
-  "emarchenko"})
+(def authors #{"a.verinov"
+               "a.kuzmenko"
+               "r.mamedov"
+               "s.taran"
+               "i.mozharovsky"
+               "emarchenko"})
 
 (defn text-handler [{{raw-text :text, token :token, author :user_name} :params}]
   (let [[msg-type text] (-> raw-text
@@ -54,5 +52,5 @@
                     (values {:author author, :widget_id widget-id, :text text, :type msg-type}))
                   (:text)
                   (#(do
-                    (put! websockets/pings {:subj :update-widget :widget-id widget-id})
-                    (str "+" msg-type ": " %)))))))
+                     (put! websockets/pings {:subj :update-widget :widget-id widget-id})
+                     (str "+" msg-type ": " %)))))))

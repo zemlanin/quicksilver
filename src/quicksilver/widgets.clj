@@ -1,4 +1,4 @@
-(ns quicksilver.api.widgets
+(ns quicksilver.widgets
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages widgets]]
