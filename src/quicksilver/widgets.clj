@@ -5,7 +5,8 @@
             [clj-time.core :as t]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [clojure.core.match :refer [match]]))
 
 (defn get-widget [widget-id]
   (-> (select widgets
@@ -74,3 +75,11 @@
                                            :chance s/Int}]}
                    :periodic-text {:values [s/Str]
                                    :switches-every s/Int}})
+
+(defn match-widget-type [widget]
+  (match widget
+    {:type "random-text"} (random-text widget)
+    {:type "static-text"} (static-text widget)
+    {:type "periodic-text"} (periodic-text widget)
+    nil {:error "not found"}
+    :else {:error "unknown widget type"}))

@@ -3,9 +3,12 @@
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :refer [messages slack-tokens widgets]]
             [quicksilver.websockets :as websockets]
+            [quicksilver.widgets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
-            [quicksilver.config :refer [config]]))
+            [quicksilver.config :refer [config]]
+            [clojure.data.json :as json]
+            [camel-snake-kebab.core :refer [->camelCaseString]]))
 
 (defn get-msg [widget-id]
   (-> (select messages
@@ -42,13 +45,16 @@
                "i.mozharovsky"
                "emarchenko"})
 
+(defn get-head-text [raw-text]
+  (-> raw-text
+      (clojure.string/split #" ")
+      (match
+        [] ["" ""]
+        [h] [h ""]
+        [h & split-text] [h (clojure.string/join " " split-text)])))
+
 (defn text-handler [{{raw-text :text, token :token, author :user_name} :params}]
-  (let [[msg-type text] (-> raw-text
-                            (clojure.string/split #" ")
-                            (match
-                              [] ["" ""]
-                              [msg-type] [msg-type ""]
-                              [msg-type & split-text] [msg-type (clojure.string/join " " split-text)]))
+  (let [[msg-type text] (get-head-text raw-text)
         widget (get-widget-by-title msg-type)
         widget-id (:id widget)]
 
@@ -64,3 +70,28 @@
                   (#(do
                      (put! websockets/push-chan {:subj :update-widget :widget-id widget-id})
                      (str "+" msg-type ": " %)))))))
+
+(defn widgets-cmd
+  "`/dash widgets` – list all widgets"
+  []
+  (->> (select widgets)
+      (map #(hash-map
+              :fields [{:title "id" :short true :value (:id %)}
+                       {:title "title" :short true :value (:title %)}
+                       {:title "value" :value (:text (quicksilver.widgets/match-widget-type %))}]))
+      (hash-map :text "widgets" :attachments)))
+
+(defn wrap-json-response [resp]
+  (-> resp
+      (json/write-str :key-fn ->camelCaseString)
+      (#(hash-map :body %
+                  :headers {"Content-Type" "application/json; charset=utf-8"
+                            "Access-Control-Allow-Origin" "*"}))))
+
+(defn dash-handler [{{raw-text :text, token :token, author :user_name} :params}]
+  (let [[cmd text] (get-head-text raw-text)]
+    (-> cmd
+      (match
+        "help" {:text (clojure.string/join "\n" (map #(:doc (meta %)) [#'widgets-cmd]))}
+        "widgets" (widgets-cmd))
+      (wrap-json-response))))

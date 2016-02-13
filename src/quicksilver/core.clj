@@ -1,5 +1,7 @@
 (ns quicksilver.core
   (:gen-class)
+  (:import [org.joda.time DateTime DateTimeZone ReadableInstant]
+           [org.joda.time.format ISODateTimeFormat])
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.params]
             [ring.middleware.keyword-params]
@@ -14,13 +16,17 @@
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
             [clojure.data.json :as json]
-            [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :refer [->camelCaseString]]
             [clj-time.core :as t]
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
 
 (defdb db (postgres (:postgres (config))))
+
+(extend-protocol json/JSONWriter
+  org.joda.time.DateTime
+  (-write [in out]
+    (.print out (str "\"" in "\""))))
 
 (defn wrap-json-response [resp]
   (-> resp
@@ -35,20 +41,12 @@
     (assoc resp :ws {:url (routes/absolute websockets/url :subj "update-widget")
                       :conds {:widget-id widget-id}})))
 
-(defn match-widget-type [widget]
-  (match widget
-    {:type "random-text"} (widgets/random-text widget)
-    {:type "static-text"} (widgets/static-text widget)
-    {:type "periodic-text"} (widgets/periodic-text widget)
-    nil {:error "not found"}
-    :else {:error "unknown widget type"}))
-
 (defn get-widget-handler [{{widget-id :id, title :title} :route-params :as req}]
   (let [widget (if widget-id
                   (widgets/get-widget (as-int widget-id))
                   (widgets/get-widget-by-title title))]
     (-> widget
-        (match-widget-type)
+        (widgets/match-widget-type)
         (add-websockets-endpoint (:id widget))
         wrap-json-response)))
 
@@ -57,9 +55,11 @@
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
     (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
   (context "/text" []
-    (POST "/slack" [] slack/text-handler))
+    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
+    (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
   (context "/slack" []
-    (POST "/text" [] slack/text-handler))
+    (POST "/text" [] slack/text-handler)
+    (POST "/dash" [] slack/dash-handler))
   (GET websockets/url [] websockets/ws-handler))
 
 (def my-app

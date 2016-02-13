@@ -15,4 +15,4 @@
 (defentity widgets
   (transform (fn [v] (-> v
                         (pg-object->str :type :source_data))))
-  (entity-fields :id :type :date_created :source_data))
+  (entity-fields :id :type :date_created :source_data :title))
