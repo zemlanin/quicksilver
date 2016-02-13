@@ -2,12 +2,7 @@
   (:gen-class)
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.params]
-            [ring.middleware.cookies]
-            [ring.middleware.session]
-            [ring.middleware.session.cookie]
             [ring.middleware.keyword-params]
-            [ring.middleware.format]
-            [ring.middleware.format-response]
             [korma.db :refer [defdb postgres]]
             [compojure.core :refer :all]
             [compojure.route]
@@ -19,8 +14,6 @@
             [quicksilver.api.widgets :as widgets]
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
-            [quicksilver.web.auth]
-            [quicksilver.web.widgets]
             [clojure.data.json :as json]
             [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :refer [->camelCaseString]]
@@ -29,11 +22,6 @@
             [org.httpkit.server :refer [run-server]]))
 
 (defdb db (postgres (:postgres (config))))
-
-(extend-protocol cheshire.generate/JSONable
-  org.joda.time.DateTime
-  (to-json [t jg]
-    (cheshire.generate/write-string jg (str t))))
 
 (defn wrap-json-response [resp]
   (-> resp
@@ -64,80 +52,18 @@
   (get-widget-handler (assoc-in req [:route-params :id]
                         (get old-widgets-map msg-type -1))))
 
-(defn wrap-visited-site [handler]
-  (fn [request]
-    (let [response (handler request)
-          new-session (if (:session response)
-                        (assoc (:session response) :visited true)
-                        (assoc (:session request) :visited true))]
-
-      (assoc response :session new-session))))
-
-(defonce session-store
-  (ring.middleware.session.cookie/cookie-store {:key (config :session-secret)}))
-
-(defn wrap-session-user [handler]
-  (fn [request]
-    (let [session (-> request :session)
-          auth-id (-> session :auth-id)
-          user (quicksilver.web.auth/get-session-user auth-id)
-          extended-session (if user
-                            (assoc session :user user)
-                            session)
-          response (handler (assoc request :session extended-session))
-
-          shrunk-session (when (:session response)
-                            (dissoc (:session response) :user))]
-
-      (if shrunk-session
-        (assoc response :session shrunk-session)
-        response))))
-
-(defn wrap-joda-time [handler]
-  (fn [request]
-    (->> request
-        handler
-        (clojure.walk/prewalk
-          #(if (instance? org.joda.time.DateTime %) (.toDate %) %)))))
-
-(defn wrap-restful-format [handler]
-  (ring.middleware.format/wrap-restful-format handler
-    :formats [:json]
-    :response-options {:json {:key-fn ->camelCaseString}}))
-
 (defroutes api-routes
-  (wrap-routes
-    (routes
-      (context "/api" []
-        (GET "/whoami" [] quicksilver.web.auth/whoami)
-        (context "/auth" []
-          (POST "/" [] quicksilver.web.auth/post-handler)
-          (DELETE "/" [] quicksilver.web.auth/logout)
-          (POST ["/:token" :token #"[0-9A-Za-z]+"] [] quicksilver.web.auth/token-handler))
-        (context "/widgets" []
-          (GET "/" [] quicksilver.web.widgets/handler)
-          (GET ["/:id" :id #"[0-9]+"] [] quicksilver.web.widgets/widget-handler)))
-
-      (context "/text" []
-        (GET  "/:msg-type" [] get-text-handler)
-        (POST "/slack" [] slack/text-handler))
-      (GET websockets/url [] websockets/ws-handler)
-      (context "/widgets" []
-        (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
-
-    #(-> %
-        (wrap-joda-time)
-        (wrap-restful-format))))
+  (context "/text" []
+    (GET  "/:msg-type" [] get-text-handler)
+    (POST "/slack" [] slack/text-handler))
+  (GET websockets/url [] websockets/ws-handler)
+  (context "/widgets" []
+    (GET ["/:id", :id #"[0-9]+"] [id :<< as-int :as r] (get-widget-handler (assoc-in r [:route-params :id] id)))))
 
 (def my-app
   (-> api-routes
-      wrap-session-user
-      (ring.middleware.session/wrap-session
-        {:store session-store
-          :cookie-attrs {:max-age (* 30 24 3600)}})
       ring.middleware.keyword-params/wrap-keyword-params
-      ring.middleware.params/wrap-params
-      ring.middleware.cookies/wrap-cookies))
+      ring.middleware.params/wrap-params))
 
 (def my-app-reload
   (-> my-app

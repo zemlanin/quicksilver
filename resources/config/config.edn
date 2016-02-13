@@ -7,8 +7,6 @@
   :redis {:host "127.0.0.1"
           :port 6379
           :db 0}
-  :email {:port 587}
-  :session-secret "super ses secret"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -16,11 +14,5 @@
     "prod" {:postgres {:user "quicksilver"
                        :password #nomad/env-var "DB_PASSWORD"
                        :post "5432"}
-            :email {:host "smtp.postmarkapp.com"
-                    :port 2525
-                    :user #nomad/env-var "POSTMARK_TOKEN"
-                    :pass #nomad/env-var "POSTMARK_TOKEN"
-                    :tls true}
             :base-url "bwd.cat"
-            :session-secret #nomad/env-var "SESSION_SECRET"
             :debug false}}}
