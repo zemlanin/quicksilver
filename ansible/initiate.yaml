@@ -17,18 +17,6 @@
                   line='DB_PASSWORD="{{db_password}}"'
                   state=present
 
-    - name: check ENV SESSION_SECRET
-      lineinfile: dest=/etc/sysconfig/quicksilver
-                  regexp='^SESSION_SECRET='
-                  line='SESSION_SECRET="{{session_secret}}"'
-                  state=present
-
-    - name: check ENV POSTMARK_TOKEN
-      lineinfile: dest=/etc/sysconfig/quicksilver
-                  regexp='^POSTMARK_TOKEN='
-                  line='POSTMARK_TOKEN="{{postmark_token}}"'
-                  state=present
-
     - name: check ENV NOMAD_ENV
       lineinfile: dest=/etc/sysconfig/quicksilver
                   regexp='^NOMAD_ENV='

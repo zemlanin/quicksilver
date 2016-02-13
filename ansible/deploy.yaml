@@ -1,4 +1,5 @@
 ---
+# use ./deploy.sh (not this playbook!) to deploy
 - hosts: webservers
   gather_facts: no
 
@@ -8,9 +9,9 @@
         dest=/var/projects/quicksilver-latest.jar
         force=yes
 
-    - name: upload static
-      copy: src=../resources/public
-        dest=/var/projects/quicksilver/
+    # - name: upload static
+    #   copy: src=../resources/public
+    #     dest=/var/projects/quicksilver/
 
     - name: copy an artifact
       shell: cp /var/projects/quicksilver-latest.jar /var/projects/quicksilver-`date -u -Iseconds`.jar
