@@ -1,12 +1,11 @@
-systemctl daemon-reload
-systemctl enable quicksilver.service
-systemctl start quicksilver.service
-
 [Unit]
 Description=Quicksilver
-After=network.target
+After=network.target postgresql.service
 
 [Service]
 WorkingDirectory=/var/projects
 EnvironmentFile=/etc/sysconfig/quicksilver
 ExecStart=/usr/bin/java -jar /var/projects/quicksilver-latest.jar -Xmx400m -Xms200m | tee /var/log/quicksilver/qs.log
+
+[Install]
+WantedBy=multi-user.target
