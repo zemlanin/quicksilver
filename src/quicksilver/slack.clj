@@ -1,7 +1,7 @@
 (ns quicksilver.slack
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
-            [quicksilver.entities :refer [messages slack-tokens widgets]]
+            [quicksilver.entities :as entities :refer [messages slack-tokens widgets]]
             [quicksilver.websockets :as websockets]
             [quicksilver.widgets]
             [clojure.core.async :as async :refer [put!]]
@@ -17,18 +17,6 @@
         (order :date_created :DESC))
       (first)
       :text))
-
-(defn get-widget [widget-id]
-  (-> (select widgets
-        (where {:id widget-id})
-        (limit 1))
-      (first)))
-
-(defn get-widget-by-title [title]
-  (-> (select widgets
-        (where {:title title})
-        (limit 1))
-      (first)))
 
 (defn check-token [token]
   (or (and (not token) (config :debug))
@@ -55,7 +43,7 @@
 
 (defn text-handler [{{raw-text :text, token :token, author :user_name} :params}]
   (let [[msg-type text] (get-head-text raw-text)
-        widget (get-widget-by-title msg-type)
+        widget (entities/get-widget-by-title msg-type)
         widget-id (:id widget)]
 
       (match [widget-id text (contains? authors author) (check-token token)]

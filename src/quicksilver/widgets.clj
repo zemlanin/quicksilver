@@ -1,31 +1,12 @@
 (ns quicksilver.widgets
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
-            [quicksilver.entities :refer [messages widgets]]
+            [quicksilver.entities :as entities :refer [messages widgets]]
             [clj-time.core :as t]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]
             [schema.core :as s]
             [clojure.core.match :refer [match]]))
-
-(defn get-widget [widget-id]
-  (-> (select widgets
-        (where {:id widget-id})
-        (limit 1))
-      (first)))
-
-(defn get-widget-by-title [title]
-  (-> (select widgets
-        (where {:title title})
-        (limit 1))
-      (first)))
-
-(defn get-widget-message [widget]
-  (-> (select messages
-        (where {:widget_id (:id widget)})
-        (limit 1)
-        (order :date_created :DESC))
-      (first)))
 
 (defn insert-auto-message [text widget]
   (-> (insert messages
@@ -36,7 +17,7 @@
   (flatten (map (fn [[k v]] (repeat v k)) repeat-hash-map)))
 
 (defn random-text [widget]
-  (let [widget-message (get-widget-message widget)
+  (let [widget-message (entities/get-widget-message widget)
         source-data (json/read-str (:source_data widget))]
       (if (and widget-message (t/after? (:date_created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
@@ -47,7 +28,7 @@
             (select-keys [:text])))))
 
 (defn static-text [widget]
-  (-> (get-widget-message widget)
+  (-> (entities/get-widget-message widget)
       (select-keys [:text])))
 
 (defn get-base-timestamp [date-created value-index period-length]
@@ -60,7 +41,7 @@
   (t/minus (or date-created (t/epoch)) (t/seconds (* value-index period-length))))
 
 (defn periodic-text [widget]
-  (let [widget-message (get-widget-message widget)
+  (let [widget-message (entities/get-widget-message widget)
         source-data (json/read-str (:source_data widget) :key-fn ->kebab-case-keyword)
         periodic-values (:values source-data)
         period-length (:switches-every source-data)

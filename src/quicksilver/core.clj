@@ -15,6 +15,7 @@
             [quicksilver.widgets :as widgets]
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
+            [quicksilver.entities :as entities]
             [clojure.data.json :as json]
             [camel-snake-kebab.core :refer [->camelCaseString]]
             [clj-time.core :as t]
@@ -43,8 +44,8 @@
 
 (defn get-widget-handler [{{widget-id :id, title :title} :route-params :as req}]
   (let [widget (if widget-id
-                  (widgets/get-widget (as-int widget-id))
-                  (widgets/get-widget-by-title title))]
+                  (entities/get-widget (as-int widget-id))
+                  (entities/get-widget-by-title title))]
     (-> widget
         (widgets/match-widget-type)
         (add-websockets-endpoint (:id widget))
