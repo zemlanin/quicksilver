@@ -16,6 +16,7 @@
             [quicksilver.websockets :as websockets]
             [quicksilver.routes :as routes]
             [quicksilver.entities :as entities]
+            [quicksilver.github :as github]
             [clojure.data.json :as json]
             [camel-snake-kebab.core :refer [->camelCaseString]]
             [clj-time.core :as t]
@@ -61,6 +62,8 @@
   (context "/slack" []
     (POST "/text" [] slack/text-handler)
     (POST "/dash" [] slack/dash-handler))
+  (context "/github" []
+    (GET "/auth" [] github/auth-handler))
   (GET websockets/url [] websockets/ws-handler))
 
 (def my-app
