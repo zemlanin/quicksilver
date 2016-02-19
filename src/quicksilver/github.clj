@@ -12,4 +12,4 @@
                                 :as :text})
         access-token (-> access-token-resp :body)]
     ; TODO: add redirect base url to config (or move static to the same domain)
-    (redirect (str "http://localhost:8000/?" access-token))))
+    (redirect (str (config :frontend-url) "?" access-token))))

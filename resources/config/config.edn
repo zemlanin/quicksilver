@@ -5,7 +5,8 @@
   :debug true
   :base-url "localhost"
   :github {:client-id "781e22f823bc0ed6e42e"
-            :client-secret ""}
+            :client-secret "b229bc3243fdc59c4552a00b0b80360f2af171b5"}
+  :frontend-url "http://localhost:8000/"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -14,7 +15,7 @@
                        :password #nomad/env-var "DB_PASSWORD"
                        :post "5432"}
             :github {:client-id #nomad/env-var "GITHUB_CLIENT_ID"
-                      ; TODO: add to ansible vault
                       :client-secret #nomad/env-var "GITHUB_CLIENT_SECRET"}
             :base-url "bwd.cat"
+            :frontend-url "https://blackwidow.surge.sh/"
             :debug false}}}

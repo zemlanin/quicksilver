@@ -23,6 +23,18 @@
                   line="NOMAD_ENV=prod"
                   state=present
 
+    - name: check ENV GITHUB_CLIENT_ID
+      lineinfile: dest=/etc/sysconfig/quicksilver
+                  regexp='^GITHUB_CLIENT_ID='
+                  line='GITHUB_CLIENT_ID="{{github_client_id}}"'
+                  state=present
+
+    - name: check ENV GITHUB_CLIENT_SECRET
+      lineinfile: dest=/etc/sysconfig/quicksilver
+                  regexp='^GITHUB_CLIENT_SECRET='
+                  line='GITHUB_CLIENT_SECRET="{{github_client_secret}}"'
+                  state=present
+
     - name: update yum
       shell: rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm && yum -y update
 
