@@ -17,5 +17,5 @@
             :github {:client-id #nomad/env-var "GITHUB_CLIENT_ID"
                       :client-secret #nomad/env-var "GITHUB_CLIENT_SECRET"}
             :base-url "bwd.cat"
-            :frontend-url "https://blackwidow.surge.sh/"
+            :frontend-url "https://bwd.cat/"
             :debug false}}}
