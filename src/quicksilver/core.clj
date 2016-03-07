@@ -53,10 +53,7 @@
         wrap-json-response)))
 
 (defroutes api-routes
-  (context "/widgets" []
-    (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
-    (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
-  (context "/text" []
+  (context ["/:widgets" :widgets #"widgets|text"] []
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
     (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
   (context "/slack" []
