@@ -5,7 +5,7 @@
   :debug true
   :base-url "localhost"
   :github {:client-id "781e22f823bc0ed6e42e"
-            :client-secret ""}
+            :client-secret "b229bc3243fdc59c4552a00b0b80360f2af171b5"}
   :frontend-url "http://localhost:8000/"
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
