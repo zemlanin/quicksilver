@@ -16,8 +16,7 @@
                  [com.mchange/c3p0 "0.9.5.1"]
                  [clj-time "0.11.0"]
                  [camel-snake-kebab "0.3.2"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [prismatic/schema "1.0.1"]]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
 
   :source-paths ["src"]
 

@@ -57,8 +57,7 @@
     (GET ["/:id", :id #"[0-9]+"] [] get-widget-handler)
     (GET ["/:title", :title #"[a-z][a-z0-9_]+"] [] get-widget-handler))
   (context "/slack" []
-    (POST "/text" [] slack/text-handler)
-    (POST "/dash" [] slack/dash-handler))
+    (POST "/text" [] slack/text-handler))
   (context "/github" []
     (GET "/auth" [] github/auth-handler))
   (GET websockets/url [] websockets/ws-handler))

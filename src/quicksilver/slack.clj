@@ -3,7 +3,6 @@
   (:require [korma.core :refer [select where limit order insert values]]
             [quicksilver.entities :as entities :refer [messages slack-tokens widgets]]
             [quicksilver.websockets :as websockets]
-            [quicksilver.widgets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
             [quicksilver.config :refer [config]]
@@ -46,11 +45,11 @@
         widget (entities/get-widget-by-title msg-type)
         widget-id (:id widget)]
 
-      (match [widget-id text (contains? authors author) (check-token token)]
+      (match [widget-id text (check-token token) (contains? authors author)]
         [nil _ _ _] "no access (unknown widget type)"
         [_ "" _ _] (str msg-type ": " (get-msg widget-id))
-        [_ _ _ false] "no access (unknown token)"
-        [_ _ false _] "no access (unknown user)"
+        [_ _ false _] "no access (unknown token)"
+        [_ _ _ false] "no access (unknown user)"
         :else (-> ; TODO: check values for periodic-text
                   (insert messages
                     (values {:author author, :widget_id widget-id, :text text, :type msg-type}))
@@ -59,27 +58,9 @@
                      (put! websockets/push-chan {:subj :update-widget :widget-id widget-id})
                      (str "+" msg-type ": " %)))))))
 
-(defn widgets-cmd
-  "`/dash widgets` – list all widgets"
-  []
-  (->> (select widgets)
-      (map #(hash-map
-              :fields [{:title "id" :short true :value (:id %)}
-                       {:title "title" :short true :value (:title %)}
-                       {:title "value" :value (:text (quicksilver.widgets/match-widget-type %))}]))
-      (hash-map :text "widgets" :attachments)))
-
 (defn wrap-json-response [resp]
   (-> resp
       (json/write-str :key-fn ->camelCaseString)
       (#(hash-map :body %
                   :headers {"Content-Type" "application/json; charset=utf-8"
                             "Access-Control-Allow-Origin" "*"}))))
-
-(defn dash-handler [{{raw-text :text, token :token, author :user_name} :params}]
-  (let [[cmd text] (get-head-text raw-text)]
-    (-> cmd
-      (match
-        "help" {:text (clojure.string/join "\n" (map #(:doc (meta %)) [#'widgets-cmd]))}
-        "widgets" (widgets-cmd))
-      (wrap-json-response))))

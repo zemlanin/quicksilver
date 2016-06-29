@@ -5,7 +5,6 @@
             [clj-time.core :as t]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]
-            [schema.core :as s]
             [clojure.core.match :refer [match]]))
 
 (defn insert-auto-message [text widget]
@@ -52,10 +51,10 @@
         (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))
         (#(hash-map :text %)))))
 
-(def data-schemas {:random-text {:values [{:text s/Str
-                                           :chance s/Int}]}
-                   :periodic-text {:values [s/Str]
-                                   :switches-every s/Int}})
+; (def data-schemas {:random-text {:values [{:text s/Str
+;                                            :chance s/Int}]}
+;                    :periodic-text {:values [s/Str]
+;                                    :switches-every s/Int}})
 
 (defn match-widget-type [widget]
   (match widget
