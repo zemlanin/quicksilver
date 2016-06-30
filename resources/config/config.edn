@@ -7,6 +7,9 @@
   :github {:client-id "781e22f823bc0ed6e42e"
             :client-secret "e8d8a9bc44043a065afc924198c2d7729643e421"}
   :frontend-url "http://localhost:8000/"
+  :slack-tokens "token1,token-2"
+  :slack-authors "user1,user.2"
+
   :nomad/environments {
     "dev_p" {:postgres {:user "postgres"
                         :password "postgres"
@@ -18,4 +21,6 @@
                       :client-secret #nomad/env-var "GITHUB_CLIENT_SECRET"}
             :base-url "bwd.cat"
             :frontend-url "https://bwd.cat/"
+            :slack-tokens #nomad/env-var "BWD_SLACK_TOKENS"
+            :slack-authors #nomad/env-var "BWD_SLACK_AUTHORS"
             :debug false}}}

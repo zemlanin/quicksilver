@@ -13,7 +13,7 @@ CREATE TABLE users
   date_created timestamp without time zone default (now() at time zone 'utc')
 );
 
-INSERT INTO users (id, email) VALUES (1, "bwd@example.com")
+INSERT INTO users (id, email) VALUES (1, 'bwd@example.com');
 
 CREATE TABLE sessions
 (

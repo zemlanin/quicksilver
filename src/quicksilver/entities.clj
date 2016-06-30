@@ -5,10 +5,6 @@
 (defentity messages
   (entity-fields :id :date_created :author :type :text :widget_id))
 
-(defentity slack-tokens
-  (table :slack_tokens)
-  (entity-fields :id :date_created :token))
-
 (defn pg-object->str [v & ks]
   (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks))
 

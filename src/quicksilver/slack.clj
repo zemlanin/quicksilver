@@ -1,7 +1,7 @@
 (ns quicksilver.slack
   (:gen-class)
   (:require [korma.core :refer [select where limit order insert values]]
-            [quicksilver.entities :as entities :refer [messages slack-tokens widgets]]
+            [quicksilver.entities :as entities :refer [messages widgets]]
             [quicksilver.websockets :as websockets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
@@ -19,18 +19,13 @@
 
 (defn check-token [token]
   (or (and (not token) (config :debug))
-    (-> (select slack-tokens
-          (where {:token token})
-          (limit 1))
-        (empty?)
-        (not))))
+    (let [slack-tokens (set (filter some? (clojure.string/split (config :slack-tokens) #",")))]
+      (contains? slack-tokens token))))
 
-(def authors #{"a.verinov"
-               "a.kuzmenko"
-               "r.mamedov"
-               "s.taran"
-               "i.mozharovsky"
-               "emarchenko"})
+(defn check-author [author]
+  (or (and (not author) (config :debug))
+    (let [slack-authors (set (filter some? (clojure.string/split (config :slack-authors) #",")))]
+      (contains? slack-authors author))))
 
 (defn get-head-text [raw-text]
   (-> raw-text
@@ -45,7 +40,7 @@
         widget (entities/get-widget-by-title msg-type)
         widget-id (:id widget)]
 
-      (match [widget-id text (check-token token) (contains? authors author)]
+      (match [widget-id text (check-token token) (check-author author)]
         [nil _ _ _] "no access (unknown widget type)"
         [_ "" _ _] (str msg-type ": " (get-msg widget-id))
         [_ _ false _] "no access (unknown token)"
