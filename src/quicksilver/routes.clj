@@ -3,9 +3,9 @@
   (:require [quicksilver.config :refer [config]]
             [clojure.core.match :refer [match]]))
 
-(defn debug [] (:debug (config)))
-(defn port [] (:port (config)))
-(defn base-url [] (:base-url (config)))
+(defn debug [] (config :debug))
+(defn port [] (config :port))
+(defn base-url [] (config :base-url))
 
 (defn absolute
   ([url] (str (match  [(debug) (.startsWith url "/ws/")]

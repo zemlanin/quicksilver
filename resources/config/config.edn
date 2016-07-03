@@ -11,16 +11,15 @@
   :slack-authors "user1,user.2"
 
   :nomad/environments {
-    "dev_p" {:postgres {:user "postgres"
-                        :password "postgres"
-                        :port "5433"}}
-    "prod" {:postgres {:user "quicksilver"
+    "prod" {:postgres {:user #nomad/env-var "DB_USER"
                        :password #nomad/env-var "DB_PASSWORD"
-                       :post "5432"}
+                       :host #nomad/env-var "DB_HOST"
+                       :post #nomad/env-var "DB_PORT"}
             :github {:client-id #nomad/env-var "GITHUB_CLIENT_ID"
                       :client-secret #nomad/env-var "GITHUB_CLIENT_SECRET"}
-            :base-url "bwd.cat"
-            :frontend-url "https://bwd.cat/"
+            :port #nomad/env-var "BWD_PORT"
+            :base-url #nomad/env-var "BWD_BASE_URL"
+            :frontend-url #nomad/env-var "BWD_FRONTEND_URL"
             :slack-tokens #nomad/env-var "BWD_SLACK_TOKENS"
             :slack-authors #nomad/env-var "BWD_SLACK_AUTHORS"
             :debug false}}}

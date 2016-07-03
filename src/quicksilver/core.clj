@@ -23,7 +23,7 @@
             [clj-time.jdbc]
             [org.httpkit.server :refer [run-server]]))
 
-(defdb db (postgres (:postgres (config))))
+(defdb db (postgres (config :postgres)))
 
 (extend-protocol json/JSONWriter
   org.joda.time.DateTime
