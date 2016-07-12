@@ -7,7 +7,7 @@
             [quicksilver.config :refer [config]]))
 
 (defn get-msg [widget-id]
-  (-> (entities/get-widget-message widget-id})
+  (-> (entities/get-widget-message widget-id)
       :text))
 
 (defn check-token [token]
