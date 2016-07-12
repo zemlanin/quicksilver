@@ -4,9 +4,7 @@
             [quicksilver.websockets :as websockets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
-            [quicksilver.config :refer [config]]
-            [clojure.data.json :as json]
-            [camel-snake-kebab.core :refer [->camelCaseString]]))
+            [quicksilver.config :refer [config]]))
 
 (defn get-msg [widget-id]
   (-> (entities/get-widget-message widget-id})
@@ -46,10 +44,3 @@
                   (#(do
                      (put! websockets/push-chan {:subj :update-widget :widget-id widget-id})
                      (str "+" msg-type ": " %)))))))
-
-(defn wrap-json-response [resp]
-  (-> resp
-      (json/write-str :key-fn ->camelCaseString)
-      (#(hash-map :body %
-                  :headers {"Content-Type" "application/json; charset=utf-8"
-                            "Access-Control-Allow-Origin" "*"}))))

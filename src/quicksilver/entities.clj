@@ -1,17 +1,17 @@
 (ns quicksilver.entities
   (:gen-class)
-  (:require [korma.core :as k :refer [defentity prepare transform entity-fields table belongs-to has-many]]))
+  (:require [korma.core :as k]))
 
-(defentity messages
-  (entity-fields :id :date_created :author :text :widget_id))
+(k/defentity messages
+  (k/entity-fields :id :date_created :author :text :widget_id))
 
 (defn pg-object->str [v & ks]
   (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks))
 
-(defentity widgets
-  (transform (fn [v] (-> v
+(k/defentity widgets
+  (k/transform (fn [v] (-> v
                         (pg-object->str :type :source_data))))
-  (entity-fields :id :type :date_created :source_data :title))
+  (k/entity-fields :id :type :date_created :source_data :title))
 
 (defn get-widget [widget-id]
   (-> (k/select widgets
