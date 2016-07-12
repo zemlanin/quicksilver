@@ -1,7 +1,6 @@
 (ns quicksilver.slack
   (:gen-class)
-  (:require [korma.core :refer [select where limit order insert values]]
-            [quicksilver.entities :as entities :refer [messages widgets]]
+  (:require [quicksilver.entities :as entities :refer [messages widgets]]
             [quicksilver.websockets :as websockets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
@@ -10,11 +9,7 @@
             [camel-snake-kebab.core :refer [->camelCaseString]]))
 
 (defn get-msg [widget-id]
-  (-> (select messages
-        (where {:widget_id widget-id})
-        (limit 1)
-        (order :date_created :DESC))
-      (first)
+  (-> (entities/get-widget-message widget-id})
       :text))
 
 (defn check-token [token]
@@ -46,8 +41,7 @@
         [_ _ false _] "no access (unknown token)"
         [_ _ _ false] "no access (unknown user)"
         :else (-> ; TODO: check values for periodic-text
-                  (insert messages
-                    (values {:author author, :widget_id widget-id, :text text, :type msg-type}))
+                  (entities/insert-message {:widget_id widget-id, :author author, :text text})
                   (:text)
                   (#(do
                      (put! websockets/push-chan {:subj :update-widget :widget-id widget-id})

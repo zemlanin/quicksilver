@@ -3,7 +3,7 @@
   (:require [korma.core :as k :refer [defentity prepare transform entity-fields table belongs-to has-many]]))
 
 (defentity messages
-  (entity-fields :id :date_created :author :type :text :widget_id))
+  (entity-fields :id :date_created :author :text :widget_id))
 
 (defn pg-object->str [v & ks]
   (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks))
@@ -25,9 +25,13 @@
         (k/limit 1))
       (first)))
 
-(defn get-widget-message [widget]
+(defn get-widget-message [widget-id]
   (-> (k/select messages
-        (k/where {:widget_id (:id widget)})
+        (k/where {:widget_id widget-id})
         (k/limit 1)
         (k/order :date_created :DESC))
       (first)))
+
+(defn insert-message
+  ([msg] (k/insert messages (k/values msg)))
+  ([text msg] (insert-message (assoc msg :text text))))
