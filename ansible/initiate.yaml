@@ -2,6 +2,8 @@
 - hosts: webservers
   remote_user: root
   gather_facts: no
+  vars_files:
+    - vars/database.yaml
 
   tasks:
     - file: src=/usr/share/zoneinfo/UTC dest=/etc/localtime state=link force=yes
@@ -25,16 +27,25 @@
     - name: install nginx
       yum: name=nginx
 
-    - name: copy certs
-      copy: src=~/bwd_cat/{{item}} dest=/etc/ssl/{{item}}
-      with_items:
-        - bwd.cat.chained.crt
-        - bwd.cat.key
+    - name: install certbot
+      yum: name=certbot
+
+    - service: name=nginx state=stopped
+
+    - name: get letsencrypt certs
+      shell: certbot certonly -q -n -m {{cert_email}} --agree-tos --standalone -d bwd.cat -d www.bwd.cat
       notify: reload nginx
 
     - name: configure nginx
       copy: src=./quicksilver-nginx.conf dest=/etc/nginx/conf.d/default.conf
       notify: reload nginx
+
+    - name: set cert auto-renewal
+      cron: name="certbot renew"
+              job="certbot renew -q --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'"
+              minute="30"
+              hour="4"
+              weekday="2,5"
 
     - service: name=nginx
                 enabled=yes
