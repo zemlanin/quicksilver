@@ -45,8 +45,8 @@
 
 (defn get-widget-handler [{{widget-id :id, title :title} :route-params :as req}]
   (let [widget (if widget-id
-                  (entities/get-widget (as-int widget-id))
-                  (entities/get-widget-by-title title))]
+                  (entities/get-widget {:id (as-int widget-id)})
+                  (entities/get-widget {:title title}))]
     (-> widget
         (widgets/match-widget-type)
         (add-websockets-endpoint (:id widget))

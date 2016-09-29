@@ -2,6 +2,12 @@
   (:gen-class)
   (:require [korma.core :as k]))
 
+; convert Jdbc4Array into vectors
+(extend-protocol clojure.java.jdbc/IResultSetReadColumn
+  org.postgresql.jdbc4.Jdbc4Array
+  (result-set-read-column [pgobj metadata i]
+    (vec (.getArray pgobj))))
+
 (k/defentity messages
   (k/entity-fields :id :date_created :author :text :widget_id))
 
@@ -13,15 +19,18 @@
                         (pg-object->str :type :source_data))))
   (k/entity-fields :id :type :date_created :source_data :title))
 
-(defn get-widget [widget-id]
+(k/defentity teams
+  (k/entity-fields :id :date_created :slack_id :slack_token :authors))
+
+(defn get-widget [where]
   (-> (k/select widgets
-        (k/where {:id widget-id})
+        (k/where where)
         (k/limit 1))
       (first)))
 
-(defn get-widget-by-title [title]
-  (-> (k/select widgets
-        (k/where {:title title})
+(defn get-team [where]
+  (-> (k/select teams
+        (k/where where)
         (k/limit 1))
       (first)))
 
