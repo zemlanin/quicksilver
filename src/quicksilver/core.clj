@@ -1,5 +1,5 @@
 (ns quicksilver.core
-  (:gen-class)
+  (:gen-class :main true)
   (:import [org.joda.time DateTime DateTimeZone ReadableInstant]
            [org.joda.time.format ISODateTimeFormat])
   (:require [ring.middleware.reload :as reload]
@@ -73,5 +73,5 @@
 
 (defn -main [& args]
   (let [handler (if (config :debug) my-app-reload my-app)]
-    (run-server handler {:port (config :port)})
+    (run-server handler {:port (read-string (config :port))})
     (when (config :debug) (println "server's running"))))

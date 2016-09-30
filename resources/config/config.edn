@@ -1,7 +1,7 @@
 {:postgres {:db "quicksilver"
             :user "zem"
             :password ""}
-  :port 8080
+  :port "8080"
   :debug true
   :base-url "localhost"
   :github {:client-id "781e22f823bc0ed6e42e"
