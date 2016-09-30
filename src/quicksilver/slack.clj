@@ -30,7 +30,7 @@
 (defn text-handler [{{raw-text :text, token :token, author :user_name, team-id :team_id} :params}]
   (let [[msg-type text] (get-head-text raw-text)]
     (match [text (check-command team-id token author msg-type)]
-      ["" {:error "user" :widget widget}] (str msg-type ": " (get-msg (:id widget)))
+      ["" {:widget widget}] (str msg-type ": " (get-msg (:id widget)))
       [_ {:error reason}] (str "no access (" reason ")")
       [_ {:widget widget}] (-> ; TODO: check values for periodic-text
                             (entities/insert-message {:widget_id (:id widget), :author author, :text text})
