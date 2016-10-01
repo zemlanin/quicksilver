@@ -4,7 +4,8 @@
             [clj-time.core :as t]
             [camel-snake-kebab.core :refer [->kebab-case-keyword]]
             [clojure.data.json :as json]
-            [clojure.core.match :refer [match]]))
+            [clojure.core.match :refer [match]]
+            [clojure.spec :as s]))
 
 (defn repeat-hash-map->seq [repeat-hash-map]
   "(repeat-hash-map->seq {:a 5 :b 7}) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
@@ -48,10 +49,17 @@
         (nth (quot (mod time-delta (* (count periodic-values) period-length)) period-length))
         (#(hash-map :text %)))))
 
-; (def data-schemas {:random-text {:values [{:text s/Str
-;                                            :chance s/Int}]}
-;                    :periodic-text {:values [s/Str]
-;                                    :switches-every s/Int}})
+(s/def :random-text.value/text string?)
+(s/def :random-text.value/chance integer?)
+(s/def :random-text/value (s/keys :req-un [:random-text.value/text
+                                            :random-text.value/chance]))
+(s/def :random-text/values (s/every :random-text/value :min-count 2))
+(s/def ::random-text (s/keys :req-un [:random-text/values]))
+
+(s/def :periodic-text/values (s/every string? :min-count 2))
+(s/def :periodic-text/switches-every integer?)
+(s/def ::periodic-text (s/keys :req-un [:periodic-text/values
+                                        :periodic-text/switches-every]))
 
 (defn match-widget-type [widget]
   (match widget

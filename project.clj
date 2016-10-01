@@ -3,7 +3,7 @@
   :url "http://example.com/FIXME"
   :license {:name "WTFPL"
             :url "http://www.wtfpl.net/txt/copying"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha13"]
                  [org.clojure/java.jdbc "0.4.1"]
                  [org.clojure/data.json "0.2.6"]
                  [org.postgresql/postgresql "9.2-1004-jdbc4"]
@@ -16,7 +16,7 @@
                  [com.mchange/c3p0 "0.9.5.1"]
                  [clj-time "0.11.0"]
                  [camel-snake-kebab "0.3.2"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
+                 [org.clojure/core.async "0.2.391"]]
 
   :source-paths ["src"]
 

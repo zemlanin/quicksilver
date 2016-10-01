@@ -25,13 +25,20 @@
 (defn get-widget [where]
   (-> (k/select widgets
         (k/where where)
-        (k/limit 1))
+        (k/limit 1)
+        (k/order :date_created :DESC))
       (first)))
+
+(defn update-widget [id fields]
+  (k/update widgets
+    (k/set-fields fields)
+    (k/where {:id id})))
 
 (defn get-team [where]
   (-> (k/select teams
         (k/where where)
-        (k/limit 1))
+        (k/limit 1)
+        (k/order :date_created :DESC))
       (first)))
 
 (defn get-widget-message [widget-id]
