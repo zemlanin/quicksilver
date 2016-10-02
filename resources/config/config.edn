@@ -9,7 +9,8 @@
   :frontend-url "http://localhost:8000/"
 
   :nomad/environments {
-    "prod" {:postgres {:user #nomad/env-var "DB_USER"
+    "prod" {:postgres {:db "quicksilver"
+                       :user #nomad/env-var "DB_USER"
                        :password #nomad/env-var "DB_PASSWORD"
                        :host #nomad/env-var "DB_HOST"
                        :post #nomad/env-var "DB_PORT"}
