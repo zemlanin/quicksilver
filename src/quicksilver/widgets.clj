@@ -11,6 +11,13 @@
   "(repeat-hash-map->seq {:a 5 :b 7}) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
   (flatten (map (fn [[k v]] (repeat v k)) repeat-hash-map)))
 
+(defn chance-maps->seq [chance-maps]
+  "(chance-maps->seq [{:text :a :chance 5} {:text :b :chance 7}]) => (:b :b :b :b :b :b :b :a :a :a :a :a)"
+  (flatten
+    (map
+      (fn [{t :text c :chance}] (repeat c t))
+      chance-maps)))
+
 (defn random-text [widget]
   (let [widget-id (:id widget)
         widget-message (entities/get-widget-message widget-id)
@@ -18,7 +25,7 @@
       (if (and widget-message (t/after? (:date_created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
         (-> (:values source-data)
-            (repeat-hash-map->seq)
+            (chance-maps->seq)
             (rand-nth)
             (entities/insert-message {:widget_id widget-id})
             (select-keys [:text])))))
