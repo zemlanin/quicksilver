@@ -1,6 +1,9 @@
 (ns quicksilver.entities
   (:gen-class)
-  (:require [korma.core :as k]))
+  (:import [org.postgresql.util PGobject])
+  (:require [korma.core :as k]
+            [camel-snake-kebab.core :refer [->kebab-case-keyword ->camelCaseString]]
+            [clojure.data.json :as json]))
 
 ; convert Jdbc4Array into vectors
 (extend-protocol clojure.java.jdbc/IResultSetReadColumn
@@ -12,11 +15,31 @@
   (k/entity-fields :id :date_created :author :text :widget_id))
 
 (defn pg-object->str [v & ks]
-  (reduce #(assoc %1 %2 (if-some [pg-obj (%2 %1)] (.getValue pg-obj))) v ks))
+  (reduce
+    #(assoc %1 %2 (if-some [pg-obj (%2 %1)]
+                    (.getValue pg-obj)))
+    v ks))
+
+(defn json-string->map [v & ks]
+  (reduce
+    #(assoc %1 %2 (if-some [json-string (%2 %1)]
+                    (json/read-str json-string :key-fn ->kebab-case-keyword)))
+    v ks))
+
+(defn map->json [v & ks]
+  (reduce
+    #(assoc %1 %2 (if-some [hmap (%2 %1)]
+                    (doto (PGobject.)
+                      (.setType "json")
+                      (.setValue (json/write-str hmap :key-fn ->camelCaseString)))))
+    v ks))
 
 (k/defentity widgets
   (k/transform (fn [v] (-> v
-                        (pg-object->str :type :source_data))))
+                        (pg-object->str :type :source_data)
+                        (json-string->map :source_data))))
+  (k/prepare (fn [v] (-> v
+                      (map->json :source_data))))
   (k/entity-fields :id :type :date_created :source_data :title))
 
 (k/defentity teams

@@ -14,10 +14,10 @@
 (defn random-text [widget]
   (let [widget-id (:id widget)
         widget-message (entities/get-widget-message widget-id)
-        source-data (json/read-str (:source_data widget))]
+        source-data (:source_data widget)]
       (if (and widget-message (t/after? (:date_created widget-message) (t/today-at-midnight)))
         (select-keys widget-message [:text])
-        (-> (get source-data "values")
+        (-> (:values source-data)
             (repeat-hash-map->seq)
             (rand-nth)
             (entities/insert-message {:widget_id widget-id})
@@ -39,7 +39,7 @@
 
 (defn periodic-text [widget]
   (let [widget-message (entities/get-widget-message (:id widget))
-        source-data (json/read-str (:source_data widget) :key-fn ->kebab-case-keyword)
+        source-data (:source_data widget)
         periodic-values (:values source-data)
         period-length (:switches-every source-data)
         value-index (max 0 (.indexOf periodic-values (:text widget-message)))
