@@ -4,6 +4,7 @@
             [quicksilver.websockets :as websockets]
             [clojure.core.async :as async :refer [put!]]
             [clojure.core.match :refer [match]]
+            [clojure.data.json :as json]
             [quicksilver.config :refer [config]]
             [clojure.spec :as s]))
 
@@ -39,16 +40,17 @@
         src (try
               (clojure.edn/read-string text)
               (catch Exception e :error))]
-    (match [(clojure.edn/read-string text) (check-command team-id token author msg-type)]
+    (match [src (check-command team-id token author msg-type)]
       [nil {:widget {:source_data nil}}] (str msg-type " has no source")
-      [nil {:widget widget}] (str msg-type " source: " (:source_data widget))
+      [nil {:widget {:source_data prev}}] (str msg-type " source: `" prev "`")
       [:error _] ":warning: Invalid source. Use EDN format"
       [_ {:error reason}] (str "no access (" reason ")")
-      [src {:widget {:source_data nil}}] (str msg-type " has no source")
-      [src {:widget widget}] (if (validate-source-data widget src)
-                              src
-                              ;(entities/update-widget (:id widget) {:source_data src})
-                              (str ":warning: Invalid source. See existing one")))))
+      [_ {:widget {:source_data nil}}] (str msg-type " has no source")
+      [_ {:widget widget}] (if (validate-source-data widget src)
+                              (do
+                                (entities/update-widget (:id widget) {:source_data src})
+                                (str ":ok_hand: `" (:source_data widget) "` -> `" src "`"))
+                              (str ":warning: Invalid source. Check existing one")))))
 
 (defn message-handler [msg-type text team-id token author]
   (match [text (check-command team-id token author msg-type)]
@@ -64,6 +66,6 @@
 (defn text-handler [{{raw-text :text, token :token, author :user_name, team-id :team_id} :params}]
   (let [[head-text text] (get-head-text raw-text)]
     (match head-text
-      ;"!source" (source-handler text team-id token author)
+      "!source" (source-handler text team-id token author)
       (cmd :guard #(clojure.string/starts-with? % "!")) "!command not found"
       :else (message-handler head-text text team-id token author))))
